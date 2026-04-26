@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stream Viewer</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest/dist/hls.min.js"></script>
+<script src="streams.js"></script>
+
+<style>
+  /* ── CONSTANTS ─────────────────────────────────────────────── */
+  :root {
+    --grid-columns: 3;        /* cards per row */
+    --card-min-width: 300px;  /* minimum card width before wrapping */
+    --card-aspect: 56.25%;    /* video aspect ratio: 16:9 = 56.25%, 4:3 = 75% */
+    --gap: 20px;              /* gap between cards */
+
+    --bg:      #090910;
+    --surface: #111120;
+    --surface2:#1a1a2e;
+    --accent:  #e94560;
+    --text:    #f0f0f8;
+    --muted:   #6b6b8a;
+    --border:  #222236;
+    --radius:  10px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* scanline texture */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(255,255,255,0.015) 2px,
+      rgba(255,255,255,0.015) 4px
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── HEADER ────────────────────────────────────────────────── */
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(9,9,16,0.88);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo-icon {
+    width: 30px;
+    height: 30px;
+    background: var(--accent);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+    box-shadow: 0 0 18px rgba(233,69,96,0.45);
+  }
+
+  h1 {
+    font-size: 17px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  /* ── GRID ──────────────────────────────────────────────────── */
+  main {
+    padding: 28px 32px 56px;
+    position: relative;
+    z-index: 1;
+  }
+
+  #grid {
+    display: grid;
+    grid-template-columns: repeat(var(--grid-columns), minmax(var(--card-min-width), 1fr));
+    gap: var(--gap);
+  }
+
+  /* ── CARD ──────────────────────────────────────────────────── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+    animation: fadeUp 0.35s ease both;
+  }
+
+  .card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(233,69,96,0.4);
+    box-shadow: 0 12px 40px rgba(233,69,96,0.1);
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .card:nth-child(1) { animation-delay: 0.04s; }
+  .card:nth-child(2) { animation-delay: 0.08s; }
+  .card:nth-child(3) { animation-delay: 0.12s; }
+  .card:nth-child(4) { animation-delay: 0.16s; }
+  .card:nth-child(5) { animation-delay: 0.20s; }
+  .card:nth-child(6) { animation-delay: 0.24s; }
+  .card:nth-child(7) { animation-delay: 0.28s; }
+  .card:nth-child(8) { animation-delay: 0.32s; }
+  .card:nth-child(9) { animation-delay: 0.36s; }
+
+  /* ── VIDEO AREA ────────────────────────────────────────────── */
+  .video-wrap {
+    position: relative;
+    width: 100%;
+    padding-top: var(--card-aspect);
+    background: #000;
+    overflow: hidden;
+  }
+
+  .video-wrap video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* placeholder */
+  .video-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: var(--surface2);
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .video-placeholder:hover { background: #1f1f35; }
+
+  .play-circle {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    border: 2px solid var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, transform 0.15s;
+  }
+
+  .video-placeholder:hover .play-circle {
+    background: var(--accent);
+    transform: scale(1.08);
+  }
+
+  .play-circle svg { margin-left: 3px; }
+
+  .placeholder-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  /* spinner */
+  .spinner {
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.55);
+  }
+
+  .spinner.active { display: flex; }
+
+  .spin-ring {
+    width: 36px;
+    height: 36px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* live badge */
+  .live-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: var(--accent);
+    color: #fff;
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    padding: 3px 8px;
+    border-radius: 3px;
+    display: none;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .live-badge.show { display: flex; }
+
+  .live-dot {
+    width: 6px;
+    height: 6px;
+    background: #fff;
+    border-radius: 50%;
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.3; }
+  }
+
+  /* error overlay */
+  .error-overlay {
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 8px;
+    background: rgba(9,9,16,0.9);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    text-align: center;
+    padding: 16px;
+  }
+
+  .error-overlay.show { display: flex; }
+  .error-overlay .err-icon { font-size: 20px; margin-bottom: 4px; }
+
+  .retry-btn {
+    margin-top: 6px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    padding: 5px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+
+  .retry-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── CARD FOOTER ───────────────────────────────────────────── */
+  .card-info {
+    padding: 12px 14px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .stream-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .btn-play {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    padding: 6px 14px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: var(--accent);
+    color: #fff;
+    transition: background 0.15s, transform 0.1s;
+    flex-shrink: 0;
+  }
+
+  .btn-play:hover  { background: #c73652; }
+  .btn-play:active { transform: scale(0.97); }
+
+  /* ── EMPTY STATE ───────────────────────────────────────────── */
+  #empty {
+    display: none;
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+  }
+
+  /* ── RESPONSIVE ────────────────────────────────────────────── */
+  @media (max-width: 1000px) { :root { --grid-columns: 2; } }
+  @media (max-width: 640px)  {
+    :root { --grid-columns: 1; }
+    main   { padding: 16px; }
+    header { padding: 14px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-icon">📡</div>
+  <h1>Stream Viewer</h1>
+</header>
+
+<main>
+  <div id="grid">
+    <div id="empty">No streams found. Check your streams.js file.</div>
+  </div>
+</main>
+
+<script>
+const activePlayers = new Map();
+
+function init() {
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+
+  if (!STREAMS || !STREAMS.length) {
+    document.getElementById('empty').style.display = 'block';
+    return;
+  }
+
+  STREAMS.forEach((stream, i) => {
+    grid.appendChild(buildCard(stream, i));
+  });
+}
+
+function buildCard(stream, idx) {
+  const name = stream.name || 'Unnamed Stream';
+  const url  = stream.url  || '';
+
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.style.animationDelay = `${Math.min(idx * 0.04, 0.4)}s`;
+
+  card.innerHTML = `
+    <div class="video-wrap">
+      <video playsinline muted></video>
+
+      <div class="video-placeholder">
+        <div class="play-circle">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <polygon points="6,3 20,12 6,21" fill="#e94560"/>
+          </svg>
+        </div>
+        <span class="placeholder-label">Click to play</span>
+      </div>
+
+      <div class="spinner"><div class="spin-ring"></div></div>
+
+      <div class="live-badge"><div class="live-dot"></div>LIVE</div>
+
+      <div class="error-overlay">
+        <div class="err-icon">⚠</div>
+        <div>Stream unavailable<br>or CORS restricted</div>
+        <button class="retry-btn">Retry</button>
+      </div>
+    </div>
+
+    <div class="card-info">
+      <div class="stream-name">${escHtml(name)}</div>
+      <button class="btn-play">&#9654; Play</button>
+    </div>
+  `;
+
+  const video        = card.querySelector('video');
+  const placeholder  = card.querySelector('.video-placeholder');
+  const spinner      = card.querySelector('.spinner');
+  const liveBadge    = card.querySelector('.live-badge');
+  const errorOverlay = card.querySelector('.error-overlay');
+  const playBtn      = card.querySelector('.btn-play');
+  const retryBtn     = card.querySelector('.retry-btn');
+
+  function startStream() {
+    placeholder.style.display = 'none';
+    errorOverlay.classList.remove('show');
+    spinner.classList.add('active');
+
+    let hls = null;
+
+    function onPlaying() {
+      spinner.classList.remove('active');
+      liveBadge.classList.add('show');
+      playBtn.textContent = '\u23F8 Pause';
+    }
+
+    function onError() {
+      spinner.classList.remove('active');
+      errorOverlay.classList.add('show');
+      liveBadge.classList.remove('show');
+      playBtn.textContent = '\u25B6 Play';
+      if (hls) { hls.destroy(); hls = null; }
+      activePlayers.delete(card);
+    }
+
+    if (Hls.isSupported()) {
+      hls = new Hls({ enableWorker: true });
+      hls.loadSource(url);
+      hls.attachMedia(video);
+      hls.on(Hls.Events.MANIFEST_PARSED, () => { video.play().catch(() => {}); });
+      hls.on(Hls.Events.ERROR, (_, data) => { if (data.fatal) onError(); });
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = url;
+      video.addEventListener('error', onError, { once: true });
+      video.play().catch(onError);
+    } else {
+      onError();
+      return;
+    }
+
+    video.addEventListener('playing', onPlaying, { once: true });
+    activePlayers.set(card, hls);
+  }
+
+  function stopStream() {
+    const hls = activePlayers.get(card);
+    if (hls) { hls.destroy(); activePlayers.delete(card); }
+    video.pause();
+    video.src = '';
+    placeholder.style.display = 'flex';
+    spinner.classList.remove('active');
+    liveBadge.classList.remove('show');
+    errorOverlay.classList.remove('show');
+    playBtn.textContent = '\u25B6 Play';
+  }
+
+  placeholder.addEventListener('click', startStream);
+  retryBtn.addEventListener('click', startStream);
+
+  playBtn.addEventListener('click', () => {
+    if (!video.src && video.paused) { startStream(); return; }
+    if (video.paused) {
+      video.play();
+      playBtn.textContent = '\u23F8 Pause';
+    } else {
+      stopStream();
+    }
+  });
+
+  return card;
+}
+
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+init();
+</script>
+</body>
+</html>
