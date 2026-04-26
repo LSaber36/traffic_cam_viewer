@@ -47,20 +47,28 @@ function renderGrid() {
 // ═══════════════════════════════════════════════════════════════
 //  Boot
 // ═══════════════════════════════════════════════════════════════
-(function boot() {
-  // 1. Detect missing streams.js — STREAMS will be undefined
-  if (typeof STREAMS === 'undefined' || !Array.isArray(STREAMS)) {
-    showMissingFilePopup('streams.js');
+// ═══════════════════════════════════════════════════════════════
+//  Boot
+// ═══════════════════════════════════════════════════════════════
+(async function boot() {
+  // 1. Wait for PapaParse to finish loading traffic_cams.csv
+  if (typeof window.streamsReady !== 'undefined') {
+    await window.streamsReady;
+  }
+
+  // 2. If STREAMS failed to build, show the missing file popup
+  if (!Array.isArray(window.STREAMS)) {
+    showMissingFilePopup('traffic_cams.csv');
     return;
   }
 
-  // 2. Enable all streams by default
+  // 3. Enable all streams by default
   STREAMS.forEach((_, i) => enabledSet.add(i));
   updateSelCount();        // from selector.js
 
-  // 3. Apply default column size
+  // 4. Apply default column size
   applySize(DEFAULT_STREAM_SIZE); // from navbar.js
 
-  // 4. Render the initial grid
+  // 5. Render the initial grid
   renderGrid();
 })();

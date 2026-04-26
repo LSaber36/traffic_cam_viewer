@@ -139,10 +139,10 @@
     <div class="popup-icon">📂</div>
     <div class="popup-title">File Not Found</div>
     <div class="popup-msg">
-      The stream data file could not be loaded.<br>
+      The traffic cam data file could not be loaded.<br>
       Make sure the following file exists in the same folder as <code>index.html</code>:
     </div>
-    <div class="popup-code" id="popup-filename">streams.js</div>
+    <div class="popup-code" id="popup-filename">traffic_cams.csv</div>
     <div class="popup-msg">
       Refresh the page after placing the file.
     </div>
@@ -160,16 +160,16 @@
 
 <!--
      Load order:
-       1. hls.js        — HLS playback engine (CDN)
-       2. streams.js    — stream data (must define STREAMS)
-       3. config.js     — constants
-       4. cards.js      — escHtml, escAttr, buildCard, activePlayers
-       5. navbar.js     — size control, theme, play/pause/refresh
-       6. selector.js   — stream selector panel, enabledSet
-       7. render.js     — showMissingFilePopup, renderGrid, boot
+       1. hls.js          — HLS playback engine (CDN)
+       2. js/streams.js   — fetches CSV, filters, builds STREAMS
+       3. js/config.js    — constants
+       4. js/cards.js     — escHtml, escAttr, buildCard, activePlayers
+       5. js/navbar.js    — size control, theme, play/pause/refresh
+       6. js/selector.js  — stream selector panel, enabledSet
+       7. js/render.js    — showMissingFilePopup, renderGrid, boot
 -->
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest/dist/hls.min.js"></script>
-<script src="streams.js"   onerror="showMissingFilePopup('streams.js')"></script>
+<script src="js/streams.js"></script>
 <script src="js/config.js"></script>
 <script src="js/cards.js"></script>
 <script src="js/navbar.js"></script>
