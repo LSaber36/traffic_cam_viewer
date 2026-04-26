@@ -1,0 +1,115 @@
+/* ═══════════════════════════════════════════════════════════════
+   base.css — Theme tokens, reset, body, scanline, main layout
+═══════════════════════════════════════════════════════════════ */
+
+/* ── Theme tokens ─────────────────────────────────────────────── */
+:root {
+  --gap:         14px;
+  --radius:      10px;
+  --accent:      #e94560;
+  --accent-h:    #c73652;
+  --card-aspect: 56.25%;   /* 16:9 */
+}
+
+[data-theme="dark"] {
+  --bg:         #090910;
+  --surface:    #111120;
+  --surface2:   #1a1a2e;
+  --text:       #f0f0f8;
+  --muted:      #6b6b8a;
+  --border:     #222236;
+  --header-bg:  rgba(9,9,16,0.96);
+  --error-bg:   rgba(9,9,16,0.93);
+  --input-bg:   #0d0d18;
+  --scrollbar:  #2a2a40;
+  --popup-shadow: rgba(0,0,0,0.6);
+}
+
+[data-theme="light"] {
+  --bg:         #eef0f8;
+  --surface:    #ffffff;
+  --surface2:   #e4e6f4;
+  --text:       #1a1a2e;
+  --muted:      #8888aa;
+  --border:     #d0d4ea;
+  --header-bg:  rgba(238,240,248,0.96);
+  --scanline:   transparent;
+  --error-bg:   rgba(238,240,248,0.95);
+  --input-bg:   #f6f8ff;
+  --scrollbar:  #c8ccde;
+  --popup-shadow: rgba(0,0,0,0.2);
+}
+
+/* ── Reset ────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { height: 100%; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Syne', sans-serif;
+  min-height: 100%;
+  overflow-x: hidden;
+  transition: background 0.25s, color 0.25s;
+}
+
+/* ── Main content area ────────────────────────────────────────── */
+main {
+  /* top padding creates the persistent gap below the sticky header */
+  padding: 20px 16px 56px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Error / missing-file popup ───────────────────────────────── */
+.popup-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.65);
+  z-index: 1000;
+  align-items: center; justify-content: center;
+}
+.popup-overlay.show { display: flex; }
+
+.popup-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 24px 64px var(--popup-shadow);
+  padding: 28px 32px;
+  max-width: 380px; width: 90%;
+  text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
+}
+
+.popup-icon { font-size: 36px; }
+
+.popup-title {
+  font-size: 15px; font-weight: 800;
+  text-transform: uppercase; letter-spacing: 0.07em;
+}
+
+.popup-msg {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px; color: var(--muted); line-height: 1.65;
+}
+
+.popup-code {
+  font-family: 'Space Mono', monospace;
+  font-size: 12px; font-weight: 700;
+  color: var(--accent);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 14px;
+}
+
+/* ── Responsive base ──────────────────────────────────────────── */
+@media (min-width: 600px) {
+  main { padding: 20px 20px 56px; }
+}
+
+@media (min-width: 900px) {
+  main { padding: 22px 24px 64px; }
+}

@@ -1,0 +1,142 @@
+/* ═══════════════════════════════════════════════════════════════
+   selector.css — Stream selector dropdown / bottom-sheet panel
+═══════════════════════════════════════════════════════════════ */
+
+.selector-wrap { position: relative; }
+
+.selector-panel {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px); right: 0;
+  width: 290px; max-height: 440px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.35);
+  overflow: hidden;
+  flex-direction: column;
+  z-index: 400;
+  animation: dropIn 0.18s ease;
+}
+.selector-panel.open { display: flex; }
+
+@keyframes dropIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Panel header: "Select All" checkbox ─────────────────────── */
+.selector-header {
+  padding: 12px 14px 10px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+  flex-shrink: 0;
+}
+
+/* Re-use sel-item styling for the select-all row */
+.sel-all-row {
+  display: flex; align-items: center; gap: 10px;
+  flex: 1; cursor: pointer; user-select: none;
+}
+
+.sel-all-checkbox {
+  width: 15px; height: 15px; flex-shrink: 0;
+  accent-color: var(--accent); cursor: pointer;
+}
+
+.sel-all-label {
+  font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.07em;
+}
+
+/* ── Search box ───────────────────────────────────────────────── */
+.selector-search {
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.sel-search-input {
+  width: 100%;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-family: 'Space Mono', monospace;
+  font-size: 10px; color: var(--text); outline: none;
+  transition: border-color 0.15s;
+}
+.sel-search-input::placeholder { color: var(--muted); }
+.sel-search-input:focus { border-color: var(--accent); }
+
+/* ── Scrollable item list ─────────────────────────────────────── */
+.selector-list {
+  overflow-y: auto; flex: 1;
+  padding: 4px 0;
+}
+.selector-list::-webkit-scrollbar { width: 4px; }
+.selector-list::-webkit-scrollbar-track { background: transparent; }
+.selector-list::-webkit-scrollbar-thumb {
+  background: var(--scrollbar); border-radius: 2px;
+}
+
+.sel-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 14px; cursor: pointer;
+  transition: background 0.12s;
+  user-select: none;
+}
+.sel-item:hover { background: var(--surface2); }
+
+.sel-checkbox {
+  width: 15px; height: 15px; flex-shrink: 0;
+  accent-color: var(--accent); cursor: pointer;
+}
+
+.sel-name {
+  font-size: 11px; color: var(--text);
+  flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.sel-sub {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px; color: var(--muted); white-space: nowrap;
+}
+
+/* ── Footer: count + apply ────────────────────────────────────── */
+.selector-footer {
+  padding: 10px 14px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+  display: flex; justify-content: space-between; align-items: center;
+}
+
+.sel-count {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px; color: var(--muted);
+}
+
+.sel-apply {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px; text-transform: uppercase; letter-spacing: 0.06em;
+  padding: 6px 14px; border-radius: 5px;
+  background: var(--accent); border: none; color: #fff;
+  cursor: pointer; transition: background 0.15s;
+}
+.sel-apply:hover { background: var(--accent-h); }
+
+/* ── Mobile: bottom sheet ─────────────────────────────────────── */
+@media (max-width: 500px) {
+  .selector-panel {
+    position: fixed;
+    top: auto; bottom: 0; right: 0; left: 0;
+    width: 100%; max-height: 72vh;
+    border-radius: 14px 14px 0 0;
+    animation: slideUp 0.22s ease;
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
+}

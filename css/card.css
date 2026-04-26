@@ -1,0 +1,182 @@
+/* ═══════════════════════════════════════════════════════════════
+   card.css — Individual stream card: layout, video, preview,
+              spinner, live badge, error overlay, card footer
+═══════════════════════════════════════════════════════════════ */
+
+/* ── Card shell ───────────────────────────────────────────────── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s, background 0.25s;
+  animation: fadeUp 0.3s ease both;
+  min-width: 0;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(233,69,96,0.35);
+  box-shadow: 0 8px 30px rgba(233,69,96,0.1);
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Video container (16:9 aspect) ────────────────────────────── */
+.video-wrap {
+  position: relative; width: 100%;
+  padding-top: var(--card-aspect);
+  background: #000; overflow: hidden;
+}
+
+.video-wrap video {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+
+/* ── Static preview image ─────────────────────────────────────── */
+.preview-img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transition: opacity 0.3s;
+}
+.preview-img.hidden { opacity: 0; pointer-events: none; }
+
+/* ── Play overlay (hidden by default, shown on hover) ─────────── */
+.video-placeholder {
+  position: absolute; inset: 0;
+  display: none;
+  align-items: center; justify-content: center;
+  cursor: pointer;
+  background: rgba(0,0,0,0.22);
+  transition: background 0.2s;
+}
+.video-wrap:hover .video-placeholder { display: flex; }
+.video-placeholder:hover { background: rgba(0,0,0,0.42); }
+.video-placeholder.hidden { display: none !important; }
+
+.play-circle {
+  width: 44px; height: 44px; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.9);
+  background: rgba(233,69,96,0.75);
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.18s, transform 0.15s;
+}
+.video-placeholder:hover .play-circle {
+  background: var(--accent); transform: scale(1.1);
+}
+.play-circle svg { margin-left: 3px; }
+
+/* ── Loading spinner ──────────────────────────────────────────── */
+.spinner {
+  position: absolute; inset: 0; display: none;
+  align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.48);
+}
+.spinner.active { display: flex; }
+
+.spin-ring {
+  width: 32px; height: 32px;
+  border: 2px solid rgba(255,255,255,0.15);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Live badge ───────────────────────────────────────────────── */
+.live-badge {
+  position: absolute; top: 7px; left: 7px;
+  background: var(--accent); color: #fff;
+  font-family: 'Space Mono', monospace;
+  font-size: 8px; font-weight: 700; letter-spacing: 0.12em;
+  padding: 2px 6px; border-radius: 3px;
+  display: none; align-items: center; gap: 4px;
+}
+.live-badge.show { display: flex; }
+
+.live-dot {
+  width: 5px; height: 5px; background: #fff; border-radius: 50%;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+
+/* ── Error overlay ────────────────────────────────────────────── */
+.error-overlay {
+  position: absolute; inset: 0; display: none;
+  align-items: center; justify-content: center;
+  flex-direction: column; gap: 6px;
+  background: var(--error-bg);
+  font-family: 'Space Mono', monospace;
+  font-size: 10px; color: var(--muted);
+  text-align: center; padding: 12px;
+}
+.error-overlay.show { display: flex; }
+.error-overlay .err-icon { font-size: 18px; margin-bottom: 2px; }
+
+.retry-btn {
+  margin-top: 4px; background: transparent;
+  border: 1px solid var(--border); color: var(--muted);
+  font-family: 'Space Mono', monospace; font-size: 10px;
+  padding: 4px 12px; border-radius: 4px; cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.retry-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── Card footer ──────────────────────────────────────────────── */
+.card-info {
+  padding: 8px 10px;
+  display: flex; align-items: center;
+  justify-content: space-between; gap: 6px;
+  border-top: 1px solid var(--border);
+  transition: border-color 0.25s;
+  flex-shrink: 0;
+}
+
+.card-name-block { flex: 1; min-width: 0; }
+
+.stream-name {
+  font-size: 14px; font-weight: 600; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  transition: color 0.25s;
+}
+
+.stream-sub {
+  display: flex; flex-direction: row; align-items: center; gap: 4px;
+  margin-top: 2px;
+}
+
+.stream-sub-route,
+.stream-sub-bullet,
+.stream-sub-nearby {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px; color: var(--muted);
+  white-space: nowrap;
+  transition: color 0.25s;
+}
+
+.stream-sub-route,
+.stream-sub-nearby {
+  overflow: hidden; text-overflow: ellipsis;
+}
+
+.card-btns { display: flex; gap: 4px; flex-shrink: 0; }
+
+.cbtn {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px; text-transform: uppercase; letter-spacing: 0.04em;
+  padding: 5px 8px; border-radius: 5px;
+  border: 1px solid var(--border);
+  background: transparent; color: var(--muted);
+  cursor: pointer; transition: all 0.15s; white-space: nowrap;
+  display: flex; align-items: center; justify-content: center;
+}
+.cbtn:hover             { border-color: var(--accent); color: var(--accent); }
+.cbtn.play-active       { background: var(--accent); border-color: var(--accent); color: #fff; }
+.cbtn.play-active:hover { background: var(--accent-h); }

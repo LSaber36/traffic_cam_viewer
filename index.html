@@ -1,36 +1,48 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Caltrans D3 Stream Viewer</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="main.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Traffic Cam Viewer</title>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+
+  <!-- Stylesheets (order matters: base first, then components) -->
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/header.css">
+  <link rel="stylesheet" href="css/selector.css">
+  <link rel="stylesheet" href="css/grid.css">
+  <link rel="stylesheet" href="css/card.css">
 </head>
 <body>
 
+<!-- ═══════════════════════════════════════════════════════════
+     HEADER / NAV BAR
+════════════════════════════════════════════════════════════ -->
 <header>
   <div class="header-row">
 
     <!-- Logo + title -->
     <div class="logo-icon">📡</div>
-    <h1>Caltrans D3</h1>
+    <h1>Traffic Cam Viewer</h1>
 
-    <!-- Size control -->
+    <!-- Stream Size control -->
     <div class="size-control">
-      <span class="size-label">Size</span>
-      <input type="range" class="size-slider" id="size-slider" min="1" max="10" step="1">
+      <span class="size-label">Stream Size</span>
+      <input type="range" class="size-slider" id="size-slider"
+             min="1" max="5" step="1">
       <div class="size-spinbox">
         <button class="size-spin-btn" id="btn-size-minus" title="Fewer columns">&#8722;</button>
-        <input type="number" class="size-input" id="size-input" min="1" max="10">
-        <button class="size-spin-btn" id="btn-size-plus" title="More columns">&#43;</button>
+        <input  type="number" class="size-input" id="size-input" min="1" max="5">
+        <button class="size-spin-btn" id="btn-size-plus"  title="More columns">&#43;</button>
       </div>
     </div>
 
-    <!-- Right cluster -->
+    <!-- Right action cluster -->
     <div class="header-right">
 
-      <!-- Light / Dark toggle -->
+      <!-- Light / Dark mode toggle -->
       <div class="theme-toggle">
         <span class="theme-label" id="theme-label">Dark</span>
         <div class="toggle-track" id="theme-track">
@@ -40,11 +52,13 @@
 
       <div class="hdiv"></div>
 
-      <!-- Stream selector -->
+      <!-- Stream selector dropdown -->
       <div class="selector-wrap" id="selector-wrap">
-        <button class="hbtn" id="btn-streams">
+        <button class="hbtn" id="btn-streams" title="Select streams">
           <!-- list icon -->
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round">
             <line x1="8"  y1="6"  x2="21" y2="6"/>
             <line x1="8"  y1="12" x2="21" y2="12"/>
             <line x1="8"  y1="18" x2="21" y2="18"/>
@@ -55,39 +69,53 @@
           <span class="btn-text">Streams</span>
         </button>
 
+        <!-- Dropdown panel -->
         <div class="selector-panel" id="selector-panel">
+
+          <!-- Header row: "Select All" master checkbox -->
           <div class="selector-header">
-            <span class="selector-title">Select Streams</span>
-            <button class="sel-action" id="sel-all">All</button>
-            <button class="sel-action" id="sel-none">None</button>
+            <div class="sel-all-row" id="sel-all-row">
+              <input type="checkbox" class="sel-all-checkbox" id="sel-all-cb">
+              <span class="sel-all-label">Select All</span>
+            </div>
           </div>
+
+          <!-- Search -->
           <div class="selector-search">
             <input class="sel-search-input" id="sel-search"
-                   placeholder="Filter by name…" type="search" autocomplete="off">
+                   type="search" placeholder="Filter by name…"
+                   autocomplete="off">
           </div>
+
+          <!-- Scrollable stream list -->
           <div class="selector-list" id="selector-list"></div>
+
+          <!-- Footer: count + Apply -->
           <div class="selector-footer">
             <span class="sel-count" id="sel-count">0 selected</span>
             <button class="sel-apply" id="sel-apply">Apply</button>
           </div>
-        </div>
-      </div>
+
+        </div><!-- /selector-panel -->
+      </div><!-- /selector-wrap -->
 
       <div class="hdiv"></div>
 
-      <!-- Refresh all -->
+      <!-- Refresh all streams -->
       <button class="hbtn" id="btn-refresh-all" title="Refresh all streams">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round">
           <polyline points="1 4 1 10 7 10"/>
           <path d="M3.51 15a9 9 0 1 0 .49-3.5"/>
         </svg>
         <span class="btn-text">Refresh</span>
       </button>
 
-      <!-- Play / Pause all -->
-      <button class="hbtn" id="btn-play-all" title="Play / Pause all">
-        <svg id="play-all-icon" width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
+      <!-- Global Play / Pause all -->
+      <button class="hbtn" id="btn-play-all" title="Play or pause all streams">
+        <svg id="play-all-icon" width="11" height="11"
+             viewBox="0 0 24 24" fill="currentColor">
           <polygon points="5,3 19,12 5,21"/>
         </svg>
         <span class="btn-text" id="play-all-label">Play All</span>
@@ -97,18 +125,53 @@
   </div><!-- /header-row -->
 </header>
 
-<!-- Click-outside backdrop for selector panel -->
+<!-- Click-outside backdrop for the selector panel -->
 <div class="backdrop" id="backdrop"></div>
 
+<!-- ═══════════════════════════════════════════════════════════
+     MISSING FILE POPUP
+════════════════════════════════════════════════════════════ -->
+<div class="popup-overlay" id="popup-overlay">
+  <div class="popup-box">
+    <div class="popup-icon">📂</div>
+    <div class="popup-title">File Not Found</div>
+    <div class="popup-msg">
+      The stream data file could not be loaded.<br>
+      Make sure the following file exists in the same folder as <code>index.html</code>:
+    </div>
+    <div class="popup-code" id="popup-filename">streams.js</div>
+    <div class="popup-msg">
+      Refresh the page after placing the file.
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     MAIN GRID AREA
+════════════════════════════════════════════════════════════ -->
 <main>
   <div id="grid">
-    <div id="empty" style="display:block">Loading streams…</div>
+    <div id="empty" style="display:block">Loading streams&hellip;</div>
   </div>
 </main>
 
-<!-- Load streams data first, then app logic -->
-<script src="streams.js"></script>
+<!--
+     Load order:
+       1. hls.js        — HLS playback engine (CDN)
+       2. streams.js    — stream data (must define STREAMS)
+       3. config.js     — constants
+       4. cards.js      — escHtml, escAttr, buildCard, activePlayers
+       5. navbar.js     — size control, theme, play/pause/refresh
+       6. selector.js   — stream selector panel, enabledSet
+       7. render.js     — showMissingFilePopup, renderGrid, boot
+-->
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest/dist/hls.min.js"></script>
-<script src="main.js"></script>
+<script src="streams.js"   onerror="showMissingFilePopup('streams.js')"></script>
+<script src="js/config.js"></script>
+<script src="js/cards.js"></script>
+<script src="js/navbar.js"></script>
+<script src="js/selector.js"></script>
+<script src="js/render.js"></script>
+
 </body>
 </html>

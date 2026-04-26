@@ -1,0 +1,20 @@
+/* ═══════════════════════════════════════════════════════════════
+   grid.css — Stream grid layout
+═══════════════════════════════════════════════════════════════ */
+
+#grid {
+  display: grid;
+  /* gridTemplateColumns is set dynamically by js/navbar.js */
+  gap: var(--gap);
+}
+
+#empty {
+  display: none;
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--muted);
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  line-height: 1.7;
+}

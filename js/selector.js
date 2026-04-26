@@ -1,0 +1,163 @@
+// ═══════════════════════════════════════════════════════════════
+//  js/selector.js — Stream selector dropdown panel
+//
+//  Covers: open/close panel, "Select All" master checkbox,
+//          per-stream checkboxes, search filter, Apply button.
+//
+//  Depends on: helpers.js, navbar.js (stopAllPlayers),
+//              render.js (renderGrid), streams.js (STREAMS)
+// ═══════════════════════════════════════════════════════════════
+
+// ── DOM refs ─────────────────────────────────────────────────────
+const _btnStreams     = document.getElementById('btn-streams');
+const _selectorPanel  = document.getElementById('selector-panel');
+const _backdrop       = document.getElementById('backdrop');
+const _selList        = document.getElementById('selector-list');
+const _selSearch      = document.getElementById('sel-search');
+const _selCount       = document.getElementById('sel-count');
+const _selAllCb       = document.getElementById('sel-all-cb');    // master checkbox
+
+// ── State shared with render.js ───────────────────────────────────
+// Set of STREAMS indices that are currently enabled (shown on grid)
+const enabledSet = new Set();
+
+// ═══════════════════════════════════════════════════════════════
+//  Panel open / close
+// ═══════════════════════════════════════════════════════════════
+function openSelector() {
+  _selectorPanel.classList.add('open');
+  _backdrop.classList.add('open');
+  _btnStreams.classList.add('active');
+  _selSearch.value = '';
+  renderSelItems('');
+  _selSearch.focus();
+}
+
+function closeSelector() {
+  _selectorPanel.classList.remove('open');
+  _backdrop.classList.remove('open');
+  _btnStreams.classList.remove('active');
+}
+
+_btnStreams.addEventListener('click', e => {
+  e.stopPropagation();
+  _selectorPanel.classList.contains('open') ? closeSelector() : openSelector();
+});
+
+_backdrop.addEventListener('click', closeSelector);
+
+// ═══════════════════════════════════════════════════════════════
+//  Count display
+// ═══════════════════════════════════════════════════════════════
+function updateSelCount() {
+  _selCount.textContent = `${enabledSet.size} of ${STREAMS.length} selected`;
+  _updateSelectAllState();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  "Select All" master checkbox logic
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * Sync the master checkbox visual state from enabledSet:
+ *   - all checked   → checked, not indeterminate
+ *   - some checked  → indeterminate
+ *   - none checked  → unchecked, not indeterminate
+ */
+function _updateSelectAllState() {
+  const total   = STREAMS.length;
+  const checked = enabledSet.size;
+  if (checked === 0) {
+    _selAllCb.checked       = false;
+    _selAllCb.indeterminate = false;
+  } else if (checked === total) {
+    _selAllCb.checked       = true;
+    _selAllCb.indeterminate = false;
+  } else {
+    _selAllCb.checked       = false;
+    _selAllCb.indeterminate = true;
+  }
+}
+
+// Clicking the master checkbox → select all or deselect all
+_selAllCb.addEventListener('change', () => {
+  if (_selAllCb.checked) {
+    STREAMS.forEach((_, i) => enabledSet.add(i));
+  } else {
+    enabledSet.clear();
+  }
+  _selAllCb.indeterminate = false;
+  renderSelItems(_selSearch.value.toLowerCase());
+});
+
+// Clicking the label row also toggles the master checkbox
+document.getElementById('sel-all-row').addEventListener('click', e => {
+  if (e.target === _selAllCb) return;  // already handled by change event
+  _selAllCb.checked = !_selAllCb.checked;
+  _selAllCb.dispatchEvent(new Event('change'));
+});
+
+// ═══════════════════════════════════════════════════════════════
+//  Search filter
+// ═══════════════════════════════════════════════════════════════
+_selSearch.addEventListener('input', () =>
+  renderSelItems(_selSearch.value.toLowerCase())
+);
+
+// ═══════════════════════════════════════════════════════════════
+//  Render checkbox list
+// ═══════════════════════════════════════════════════════════════
+function renderSelItems(filter) {
+  _selList.innerHTML = '';
+
+  STREAMS.forEach((s, i) => {
+    const name = s.name || 'Unnamed';
+    if (filter && !name.toLowerCase().includes(filter)) return;
+
+    const row = document.createElement('div');
+    row.className = 'sel-item';
+
+    const cb = document.createElement('input');
+    cb.type      = 'checkbox';
+    cb.className = 'sel-checkbox';
+    cb.checked   = enabledSet.has(i);
+
+    cb.addEventListener('change', () => {
+      cb.checked ? enabledSet.add(i) : enabledSet.delete(i);
+      updateSelCount();
+    });
+
+    const nameEl = document.createElement('div');
+    nameEl.className   = 'sel-name';
+    nameEl.textContent = name;
+
+    const sub = document.createElement('div');
+    sub.className   = 'sel-sub';
+    sub.textContent = s.route ? `Hwy ${s.route}` : '';
+
+    row.appendChild(cb);
+    row.appendChild(nameEl);
+    row.appendChild(sub);
+
+    // Clicking the row (not the checkbox itself) also toggles
+    row.addEventListener('click', e => {
+      if (e.target === cb) return;
+      cb.checked = !cb.checked;
+      cb.checked ? enabledSet.add(i) : enabledSet.delete(i);
+      updateSelCount();
+    });
+
+    _selList.appendChild(row);
+  });
+
+  updateSelCount();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  Apply button
+// ═══════════════════════════════════════════════════════════════
+document.getElementById('sel-apply').addEventListener('click', () => {
+  closeSelector();
+  stopAllPlayers();   // from navbar.js
+  renderGrid();       // from render.js
+});

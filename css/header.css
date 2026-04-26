@@ -1,0 +1,183 @@
+/* ═══════════════════════════════════════════════════════════════
+   header.css — Sticky nav bar, size control, theme toggle,
+                action buttons, dividers
+═══════════════════════════════════════════════════════════════ */
+
+header {
+  position: sticky; top: 0; z-index: 300;
+  background: var(--header-bg);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-bottom: 1px solid var(--border);
+  transition: background 0.25s, border-color 0.25s;
+}
+
+.header-row {
+  display: flex; align-items: center;
+  gap: 8px; padding: 0 16px;
+  height: 54px;
+  flex-wrap: nowrap; overflow: hidden;
+}
+
+/* ── Logo & title ─────────────────────────────────────────────── */
+.logo-icon {
+  width: 26px; height: 26px;
+  background: var(--accent); border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; flex-shrink: 0;
+  box-shadow: 0 0 14px rgba(233,69,96,0.5);
+  text-decoration: none;
+}
+
+h1 {
+  font-size: 12px; font-weight: 800;
+  letter-spacing: 0.07em; text-transform: uppercase;
+  white-space: nowrap; flex-shrink: 0;
+}
+
+/* ── Stream Size control ──────────────────────────────────────── */
+.size-control {
+  display: flex; align-items: center; gap: 5px;
+  margin-left: 8px; flex-shrink: 0;
+}
+
+.size-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--muted);
+  white-space: nowrap;
+}
+
+.size-slider {
+  -webkit-appearance: none; appearance: none;
+  width: 70px; height: 3px; border-radius: 2px;
+  background: var(--border); outline: none; cursor: pointer;
+}
+.size-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--accent); cursor: pointer;
+  box-shadow: 0 0 6px rgba(233,69,96,0.5);
+}
+.size-slider::-moz-range-thumb {
+  width: 14px; height: 14px; border: none;
+  border-radius: 50%; background: var(--accent); cursor: pointer;
+}
+
+/* ± / number input spinbox */
+.size-spinbox {
+  display: flex; align-items: center; gap: 2px;
+}
+
+.size-spin-btn {
+  width: 22px; height: 26px;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 15px; line-height: 1;
+  border-radius: 5px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color 0.15s, color 0.15s;
+  flex-shrink: 0; padding: 0;
+  font-family: 'Space Mono', monospace;
+}
+.size-spin-btn:hover:not(:disabled) {
+  border-color: var(--accent); color: var(--accent);
+}
+.size-spin-btn:disabled { opacity: 0.35; cursor: default; }
+
+.size-input {
+  width: 34px; height: 26px;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--text);
+  font-family: 'Space Mono', monospace;
+  font-size: 11px; font-weight: 700;
+  text-align: center; outline: none;
+  transition: border-color 0.15s;
+  -moz-appearance: textfield;
+}
+.size-input::-webkit-inner-spin-button,
+.size-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+.size-input:focus { border-color: var(--accent); }
+
+/* ── Right cluster ────────────────────────────────────────────── */
+.header-right {
+  margin-left: auto;
+  display: flex; align-items: center; gap: 5px;
+  flex-shrink: 0;
+}
+
+/* ── Theme toggle ─────────────────────────────────────────────── */
+.theme-toggle { display: flex; align-items: center; gap: 5px; }
+
+.theme-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 0.06em;
+  display: none;
+}
+
+.toggle-track {
+  position: relative; width: 36px; height: 20px;
+  background: var(--border); border-radius: 10px;
+  cursor: pointer; transition: background 0.2s; flex-shrink: 0;
+}
+.toggle-track.light-on { background: #f0a500; }
+
+.toggle-thumb {
+  position: absolute; top: 3px; left: 3px;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--muted);
+  transition: transform 0.2s, background 0.2s;
+}
+.toggle-track.light-on .toggle-thumb {
+  transform: translateX(16px); background: #fff;
+}
+
+/* ── Generic header action buttons ───────────────────────────── */
+.hbtn {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px; text-transform: uppercase; letter-spacing: 0.05em;
+  padding: 6px 9px; border-radius: 6px; cursor: pointer;
+  border: 1px solid var(--border);
+  background: transparent; color: var(--muted);
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  white-space: nowrap;
+  display: flex; align-items: center; gap: 4px;
+  flex-shrink: 0;
+}
+.hbtn:hover        { border-color: var(--accent); color: var(--accent); }
+.hbtn.active       { background: var(--accent); border-color: var(--accent); color: #fff; }
+.hbtn.active:hover { background: var(--accent-h); }
+
+/* Text labels — shown on wider screens only */
+.btn-text { display: none; }
+
+/* Vertical divider */
+.hdiv {
+  width: 1px; height: 20px;
+  background: var(--border); flex-shrink: 0;
+}
+
+/* ── Click-outside backdrop ───────────────────────────────────── */
+.backdrop {
+  display: none; position: fixed; inset: 0; z-index: 350;
+}
+.backdrop.open { display: block; }
+
+/* ── Responsive ───────────────────────────────────────────────── */
+@media (min-width: 600px) {
+  .header-row   { padding: 0 20px; gap: 10px; }
+  .theme-label  { display: block; }
+  .btn-text     { display: inline; }
+  .size-slider  { width: 82px; }
+  h1            { font-size: 13px; }
+}
+
+@media (min-width: 900px) {
+  .header-row  { padding: 0 24px; gap: 12px; }
+  .size-slider { width: 90px; }
+  h1           { font-size: 14px; }
+}
