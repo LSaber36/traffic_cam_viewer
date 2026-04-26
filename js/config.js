@@ -3,6 +3,18 @@
 //  Edit values here to change default behaviour across the app.
 // ═══════════════════════════════════════════════════════════════
 
+// Default district ID to load on startup (1–12)
+const DEFAULT_DISTRICT = 3;
+
+// Default county to load on startup.
+// Must exist in the DEFAULT_DISTRICT's county list or it will be skipped.
+const DEFAULT_COUNTY = 'El Dorado';
+
+// Default longitude filter range (applied when the longitude filter is enabled)
+const DEFAULT_LONGITUDE_ENABLED = true;
+const DEFAULT_LONGITUDE_MIN     = -120.68;
+const DEFAULT_LONGITUDE_MAX     = -120.02;
+
 // Default stream size on first load (1 = smallest, 5 = largest).
 // Columns are derived as COLUMNS_RANGE - DEFAULT_STREAM_SIZE.
 const DEFAULT_STREAM_SIZE = 3;

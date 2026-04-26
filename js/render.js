@@ -31,7 +31,7 @@ const _gridEl = document.getElementById('grid');
 function renderGrid() {
   _gridEl.innerHTML = '';
 
-  const toShow = STREAMS.filter((_, i) => enabledSet.has(i));
+  const toShow = window.STREAMS.filter((_, i) => enabledSet.has(i));
 
   if (!toShow.length) {
     _gridEl.innerHTML =
@@ -47,28 +47,39 @@ function renderGrid() {
 // ═══════════════════════════════════════════════════════════════
 //  Boot
 // ═══════════════════════════════════════════════════════════════
-// ═══════════════════════════════════════════════════════════════
-//  Boot
-// ═══════════════════════════════════════════════════════════════
 (async function boot() {
-  // 1. Wait for PapaParse to finish loading traffic_cams.csv
+  // 1. Wait for streams.js — fetches all CSVs and builds CALTRANS_DISTRICTS
   if (typeof window.streamsReady !== 'undefined') {
     await window.streamsReady;
   }
 
-  // 2. If STREAMS failed to build, show the missing file popup
+  // 2. Populate the district dropdown now that CALTRANS_DISTRICTS is ready
+  _populateDistrictDropdown();   // from selector.js
+
+  // 3. If default STREAMS failed to load, show popup
   if (!Array.isArray(window.STREAMS)) {
     showMissingFilePopup('traffic_cams.csv');
     return;
   }
 
-  // 3. Enable all streams by default
-  STREAMS.forEach((_, i) => enabledSet.add(i));
+  // 4. Populate _committed with the boot-loaded streams
+  _committed.districtId = DEFAULT_DISTRICT;
+  _committed.county     = DEFAULT_COUNTY;
+  _committed.lonEnabled = DEFAULT_LONGITUDE_ENABLED;
+  _committed.lonMin     = DEFAULT_LONGITUDE_MIN;
+  _committed.lonMax     = DEFAULT_LONGITUDE_MAX;
+  _committed.streams    = window.STREAMS;
+  _committed.enabledSet.clear();
+  window.STREAMS.forEach((_, i) => _committed.enabledSet.add(i));
+
+  // 5. Sync the shared enabledSet
+  enabledSet.clear();
+  window.STREAMS.forEach((_, i) => enabledSet.add(i));
   updateSelCount();        // from selector.js
 
-  // 4. Apply default column size
+  // 6. Apply default column size
   applySize(DEFAULT_STREAM_SIZE); // from navbar.js
 
-  // 5. Render the initial grid
+  // 7. Render the initial grid
   renderGrid();
 })();

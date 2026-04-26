@@ -107,6 +107,19 @@
 }
 @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
 
+/* ── Preview-only badge (no streaming URL) ────────────────────── */
+.preview-only-badge {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 6px;
+  background: rgba(0,0,0,0.45);
+  font-family: 'Space Mono', monospace;
+  font-size: 10px; color: rgba(255,255,255,0.75);
+  letter-spacing: 0.08em; text-transform: uppercase;
+  text-align: center; padding: 12px;
+  pointer-events: none;
+}
+
 /* ── Error overlay ────────────────────────────────────────────── */
 .error-overlay {
   position: absolute; inset: 0; display: none;

@@ -105,19 +105,46 @@
 ════════════════════════════════════════════════════════════ -->
 <div class="selector-panel" id="selector-panel">
 
-  <!-- Header row: "Select All" master checkbox -->
-  <div class="selector-header">
+  <!-- District + County dropdowns -->
+  <div class="selector-dropdowns">
+    <div class="sel-dropdown-group">
+      <label class="sel-dropdown-label" for="sel-district">District</label>
+      <select class="sel-dropdown" id="sel-district"></select>
+    </div>
+    <div class="sel-dropdown-group">
+      <label class="sel-dropdown-label" for="sel-county">County</label>
+      <select class="sel-dropdown" id="sel-county">
+        <option value="">— select district first —</option>
+      </select>
+    </div>
+
+    <!-- Longitude filter -->
+    <div class="sel-lon-row">
+      <input type="checkbox" class="sel-lon-checkbox" id="sel-lon-enabled">
+      <label class="sel-dropdown-label" for="sel-lon-enabled">Longitude</label>
+      <div class="sel-lon-inputs">
+        <div class="sel-lon-group">
+          <label class="sel-lon-label" for="sel-lon-min">Min</label>
+          <input type="number" class="sel-lon-input" id="sel-lon-min" step="0.0001">
+        </div>
+        <div class="sel-lon-group">
+          <label class="sel-lon-label" for="sel-lon-max">Max</label>
+          <input type="number" class="sel-lon-input" id="sel-lon-max" step="0.0001">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Select All + Search -->
+  <div class="selector-search">
+    <span class="sel-dropdown-label" style="padding-bottom:2px">Traffic Cams</span>
+    <input class="sel-search-input" id="sel-search"
+           type="search" placeholder="Filter by name…"
+           autocomplete="off">
     <div class="sel-all-row" id="sel-all-row">
       <input type="checkbox" class="sel-all-checkbox" id="sel-all-cb">
       <span class="sel-all-label">Select All</span>
     </div>
-  </div>
-
-  <!-- Search -->
-  <div class="selector-search">
-    <input class="sel-search-input" id="sel-search"
-           type="search" placeholder="Filter by name…"
-           autocomplete="off">
   </div>
 
   <!-- Scrollable stream list -->
@@ -161,16 +188,16 @@
 <!--
      Load order:
        1. hls.js          — HLS playback engine (CDN)
-       2. js/streams.js   — fetches CSV, filters, builds STREAMS
-       3. js/config.js    — constants
+       2. js/config.js    — constants (DEFAULT_DISTRICT, DEFAULT_COUNTY, etc.)
+       3. js/streams.js   — fetches district chart, builds CALTRANS_DISTRICTS, loads default county
        4. js/cards.js     — escHtml, escAttr, buildCard, activePlayers
        5. js/navbar.js    — size control, theme, play/pause/refresh
        6. js/selector.js  — stream selector panel, enabledSet
        7. js/render.js    — showMissingFilePopup, renderGrid, boot
 -->
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest/dist/hls.min.js"></script>
-<script src="js/streams.js"></script>
 <script src="js/config.js"></script>
+<script src="js/streams.js"></script>
 <script src="js/cards.js"></script>
 <script src="js/navbar.js"></script>
 <script src="js/selector.js"></script>

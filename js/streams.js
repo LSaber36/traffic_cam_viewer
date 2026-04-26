@@ -1,16 +1,30 @@
 // ═══════════════════════════════════════════════════════════════
-//  js/streams.js — Fetches and parses the Caltrans CCTV CSV,
-//                  filters rows, and builds window.STREAMS.
+//  js/streams.js — Caltrans district/county map + CSV loader
 //
-//  Exposes: window.STREAMS, window.streamsReady (Promise)
+//  On startup, all 12 district CSVs are fetched in parallel.
+//  The county list for each district is derived directly from
+//  the live CSV data, not from a static map.
+//  Parsed CSV rows are cached per district so loadCounty()
+//  filters from cache without re-fetching.
+//
+//  Exposes:
+//    window.CALTRANS_DISTRICTS  — built from live CSV data
+//    window.loadCounty(districtId, countyName, lonFilter)
+//    window.streamsReady        — Promise resolving after boot
+//
+//  Depends on: config.js (DEFAULT_DISTRICT, DEFAULT_COUNTY,
+//              DEFAULT_LONGITUDE_ENABLED/MIN/MAX)
 // ═══════════════════════════════════════════════════════════════
 
-// ── Source URL ────────────────────────────────────────────────────
-const CSV_URL = 'https://cwwp2.dot.ca.gov/data/d3/cctv/cctvStatusD03.csv';
+// ── District IDs and CSV URL pattern ─────────────────────────────
+const DISTRICT_IDS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+
+function _csvUrl(districtId) {
+  const pad = String(districtId).padStart(2, '0');
+  return `https://cwwp2.dot.ca.gov/data/d${districtId}/cctv/cctvStatusD${pad}.csv`;
+}
 
 // ── Column mapping ────────────────────────────────────────────────
-//  Keys are exact CSV header names.
-//  Values are the property names used throughout the app.
 const CSV_COLUMNS = {
   locationName:      'name',
   streamingVideoURL: 'url',
@@ -22,47 +36,40 @@ const CSV_COLUMNS = {
   county:            'county',
 };
 
-// ── Sort configuration ────────────────────────────────────────────
-const SORT_BY        = 'longitude';   // must be a key in CSV_COLUMNS
+// ── Sort ──────────────────────────────────────────────────────────
+const SORT_BY        = 'longitude';
 const SORT_ASCENDING = true;
 
-// ── Filters ───────────────────────────────────────────────────────
-//  Only rows that pass ALL active filters are included in STREAMS.
-//  Filters are applied in order: county first, then longitude.
-
-// County whitelist — only rows whose county matches one of these are included.
-// Set to null to disable and allow all counties.
-const FILTER_COUNTIES = ['El Dorado'];
-
-// Longitude range — applied after the county filter.
-const FILTER_LONGITUDE_MIN = -120.68;
-const FILTER_LONGITUDE_MAX = -120.02;
+// ── Per-district row cache ────────────────────────────────────────
+// Populated during boot. Keys are district IDs (numbers).
+// Values are arrays of raw parsed row objects.
+const _districtRowCache = {};
 
 // ─────────────────────────────────────────────────────────────────
-//  CSV parser — handles quoted fields (commas/newlines inside quotes)
+//  CSV parser — handles quoted fields
 // ─────────────────────────────────────────────────────────────────
 function _parseCSV(text) {
   const rows = [];
-
-  // Split into lines, collapsing quoted newlines
   const lines = [];
   let current = '';
   let inQuote = false;
+
+  // Strip BOM if present
+  if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+
   for (let i = 0; i < text.length; i++) {
     const ch = text[i];
-    if (ch === '"') {
-      inQuote = !inQuote;
-      current += ch;
-    } else if (ch === '\n' && !inQuote) {
-      lines.push(current);
+    if (ch === '"') { inQuote = !inQuote; current += ch; }
+    else if ((ch === '\n' || ch === '\r') && !inQuote) {
+      if (current.trim()) lines.push(current);
       current = '';
-    } else {
-      current += ch;
+      // skip \r\n second char
+      if (ch === '\r' && text[i + 1] === '\n') i++;
     }
+    else { current += ch; }
   }
   if (current.trim()) lines.push(current);
 
-  // Parse a single line into fields
   function parseLine(line) {
     const fields = [];
     let field = '';
@@ -73,11 +80,8 @@ function _parseCSV(text) {
         if (inQ && line[i + 1] === '"') { field += '"'; i++; }
         else inQ = !inQ;
       } else if (ch === ',' && !inQ) {
-        fields.push(field.trim());
-        field = '';
-      } else {
-        field += ch;
-      }
+        fields.push(field.trim()); field = '';
+      } else { field += ch; }
     }
     fields.push(field.trim());
     return fields;
@@ -86,89 +90,168 @@ function _parseCSV(text) {
   const nonEmpty = lines.filter(l => l.trim().length > 0);
   if (!nonEmpty.length) return rows;
 
-  const headers = parseLine(nonEmpty[0]);
+  // Normalise headers: strip whitespace and any invisible chars
+  const headers = parseLine(nonEmpty[0]).map(h =>
+    h.replace(/^\uFEFF/, '').trim()
+  );
 
   for (let i = 1; i < nonEmpty.length; i++) {
     const values = parseLine(nonEmpty[i]);
     const row = {};
-    headers.forEach((h, idx) => { row[h.trim()] = (values[idx] || '').trim(); });
+    headers.forEach((h, idx) => { row[h] = (values[idx] || '').trim(); });
     rows.push(row);
   }
-
   return rows;
 }
 
-// ─────────────────────────────────────────────────────────────────
-//  Apply filters to a parsed row — returns true if row passes all
-// ─────────────────────────────────────────────────────────────────
-function _passesFilters(row) {
-  // 1. County whitelist filter
-  if (FILTER_COUNTIES !== null) {
-    const county = (row.county || '').trim();
-    if (!FILTER_COUNTIES.some(c => c.toLowerCase() === county.toLowerCase())) {
-      return false;
-    }
-  }
-
-  // 2. Longitude range filter
-  const lon = parseFloat(row.longitude);
-  if (isNaN(lon) || lon < FILTER_LONGITUDE_MIN || lon > FILTER_LONGITUDE_MAX) {
-    return false;
-  }
-
-  return true;
-}
-
-// ─────────────────────────────────────────────────────────────────
-//  Map a filtered CSV row to a STREAMS entry via CSV_COLUMNS
-// ─────────────────────────────────────────────────────────────────
 function _rowToStream(row) {
   const entry = {};
   for (const [csvKey, streamKey] of Object.entries(CSV_COLUMNS)) {
     const raw = row[csvKey] !== undefined ? String(row[csvKey]).trim() : '';
-    if (csvKey === 'longitude' || csvKey === 'latitude') {
-      entry[streamKey] = parseFloat(raw) || 0;
-    } else {
-      entry[streamKey] = raw;
-    }
+    entry[streamKey] = (csvKey === 'longitude' || csvKey === 'latitude')
+      ? parseFloat(raw) || 0
+      : raw;
   }
   return entry;
 }
 
 // ─────────────────────────────────────────────────────────────────
-//  Fetch → parse → filter → sort → expose as window.STREAMS
+//  Fetch and cache one district's CSV rows.
+//  Returns the array of raw row objects, or null on failure.
 // ─────────────────────────────────────────────────────────────────
-window.streamsReady = (async function loadStreams() {
-  try {
-    const res = await fetch(CSV_URL);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+async function _fetchDistrictRows(districtId) {
+  const id = +districtId;
+  if (_districtRowCache[id]) return _districtRowCache[id];
 
+  try {
+    const res = await fetch(_csvUrl(id));
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const text = await res.text();
     const rows = _parseCSV(text);
+    _districtRowCache[id] = rows;
+    return rows;
+  } catch (err) {
+    console.warn(`[streams.js] District ${id} CSV unavailable:`, err.message);
+    return null;
+  }
+}
 
-    let streams = rows
-      .filter(_passesFilters)
-      .map(_rowToStream)
-      .filter(s => s.url && s.url.length > 0);
+// ─────────────────────────────────────────────────────────────────
+//  Extract sorted unique county names from a row array.
+//  Only includes counties that have at least one row with a
+//  streaming URL — prevents empty county entries in the dropdown.
+// ─────────────────────────────────────────────────────────────────
+function _extractCounties(rows, districtId) {
+  const seen = new Set();
+  rows.forEach(row => {
+    let c = (row.county || '').trim();
+    if (!c) {
+      const key = Object.keys(row).find(k => k.toLowerCase().trim() === 'county');
+      if (key) c = (row[key] || '').trim();
+    }
+    if (c) seen.add(c);
+  });
+  const result = [...seen].sort();
+  console.log(`[streams.js] D${districtId} raw counties (${result.length}):`, result);
+  return result;
+}
 
-    // Sort
-    const sortKey = CSV_COLUMNS[SORT_BY] || SORT_BY;
-    streams.sort((a, b) => {
-      const av = a[sortKey];
-      const bv = b[sortKey];
-      const result = typeof av === 'number'
-        ? av - bv
-        : String(av).localeCompare(String(bv));
-      return SORT_ASCENDING ? result : -result;
+// ─────────────────────────────────────────────────────────────────
+//  loadCounty(districtId, countyName, lonFilter)
+//  Filters the cached district rows to the given county,
+//  applies optional longitude filter, sorts, and sets window.STREAMS.
+// ─────────────────────────────────────────────────────────────────
+async function loadCounty(districtId, countyName, lonFilter) {
+  const id = +districtId;
+
+  // Use cache — boot already fetched everything
+  let rows = _districtRowCache[id];
+  if (!rows) {
+    rows = await _fetchDistrictRows(id);
+  }
+
+  if (!rows) {
+    console.error(`[streams.js] No data for District ${id}`);
+    window.STREAMS = [];
+    throw new Error(`No data for District ${id}`);
+  }
+
+  let streams = rows
+    .filter(row => (row.county || '').trim().toLowerCase() === countyName.toLowerCase())
+    .map(_rowToStream);
+
+  if (lonFilter && lonFilter.enabled) {
+    streams = streams.filter(s =>
+      s.longitude >= lonFilter.min && s.longitude <= lonFilter.max
+    );
+  }
+
+  const sortKey = CSV_COLUMNS[SORT_BY] || SORT_BY;
+  streams.sort((a, b) => {
+    const av = a[sortKey], bv = b[sortKey];
+    const result = typeof av === 'number' ? av - bv : String(av).localeCompare(String(bv));
+    return SORT_ASCENDING ? result : -result;
+  });
+
+  window.STREAMS = streams;
+  console.log(`[streams.js] ${streams.length} streams — ${countyName}, District ${id}`);
+  return streams;
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  Boot — fetch all district CSVs in parallel, build
+//  CALTRANS_DISTRICTS from live county data, then load the default.
+// ─────────────────────────────────────────────────────────────────
+window.streamsReady = (async function boot() {
+  console.log('[streams.js] Fetching all district CSVs in parallel…');
+
+  // Fetch all districts simultaneously
+  const results = await Promise.all(
+    DISTRICT_IDS.map(async id => {
+      const rows = await _fetchDistrictRows(id);
+      if (rows && rows.length > 0 && _extractCounties(rows, id).length <= 1) {
+        console.warn(`[streams.js] D${id} has ≤1 county. First row keys:`, Object.keys(rows[0]));
+        console.warn(`[streams.js] D${id} first row sample:`, rows[0]);
+      }
+      return { id, rows };
+    })
+  );
+
+  // Build CALTRANS_DISTRICTS from live county data
+  window.CALTRANS_DISTRICTS = results
+    .filter(({ rows }) => rows && rows.length > 0)
+    .map(({ id, rows }) => {
+      const counties = _extractCounties(rows, id);
+      console.log(`[streams.js] D${id}: ${counties.length} counties —`, counties);
+      return {
+        id,
+        counties,
+        label:  counties.join('/'),
+        csvUrl: _csvUrl(id),
+      };
     });
 
-    window.STREAMS = streams;
-    console.log(`[streams.js] Loaded ${streams.length} streams from ${CSV_URL}`);
-    return streams;
+  console.log(`[streams.js] Districts ready:`,
+    window.CALTRANS_DISTRICTS.map(d => `D${d.id}(${d.counties.length})`).join(', '));
 
-  } catch (err) {
-    console.error('[streams.js] Failed to load CSV:', err);
+  // Load the default district + county
+  const defaultDistrict = window.CALTRANS_DISTRICTS.find(d => d.id === DEFAULT_DISTRICT);
+  if (
+    defaultDistrict &&
+    defaultDistrict.counties.some(c => c.toLowerCase() === DEFAULT_COUNTY.toLowerCase())
+  ) {
+    try {
+      await loadCounty(DEFAULT_DISTRICT, DEFAULT_COUNTY, {
+        enabled: DEFAULT_LONGITUDE_ENABLED,
+        min:     DEFAULT_LONGITUDE_MIN,
+        max:     DEFAULT_LONGITUDE_MAX,
+      });
+    } catch (err) {
+      console.error('[streams.js] Failed to load default county:', err);
+      window.STREAMS = undefined;
+    }
+  } else {
+    console.warn(`[streams.js] Default county "${DEFAULT_COUNTY}" not found in District ${DEFAULT_DISTRICT}.`);
     window.STREAMS = undefined;
-    return undefined;
   }
 })();
