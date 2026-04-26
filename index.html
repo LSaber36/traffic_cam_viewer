@@ -30,12 +30,12 @@
     <!-- Stream Size control -->
     <div class="size-control">
       <span class="size-label">Stream Size</span>
-      <input type="range" class="size-slider" id="size-slider"
-             min="1" max="5" step="1">
+      <input type="range" class="size-slider" id="size-slider" min="1" max="5" step="1">
+      <input type="number" class="size-input" id="size-input" min="1" max="5" style="display:none">
       <div class="size-spinbox">
-        <button class="size-spin-btn" id="btn-size-minus" title="Fewer columns">&#8722;</button>
-        <input  type="number" class="size-input" id="size-input" min="1" max="5">
-        <button class="size-spin-btn" id="btn-size-plus"  title="More columns">&#43;</button>
+        <button class="size-spin-btn" id="btn-size-minus" title="Smaller streams">&#8722;</button>
+        <input type="number" class="size-input" id="size-display" min="1" max="5">
+        <button class="size-spin-btn" id="btn-size-plus"  title="Larger streams">&#43;</button>
       </div>
     </div>
 

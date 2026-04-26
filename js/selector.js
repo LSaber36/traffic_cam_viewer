@@ -123,8 +123,15 @@ function renderSelItems(filter) {
   _selList.innerHTML = '';
 
   STREAMS.forEach((s, i) => {
-    const name = s.name || 'Unnamed';
-    if (filter && !name.toLowerCase().includes(filter)) return;
+    const name   = s.name   || '';
+    const nearby = s.nearby || '';
+    const route  = s.route  || '';
+
+    // Search across name, nearby place, and route number
+    if (filter) {
+      const haystack = [name, nearby, `hwy ${route}`].join(' ').toLowerCase();
+      if (!haystack.includes(filter)) return;
+    }
 
     const row = document.createElement('div');
     row.className = 'sel-item';
@@ -141,17 +148,16 @@ function renderSelItems(filter) {
 
     const nameEl = document.createElement('div');
     nameEl.className   = 'sel-name';
-    nameEl.textContent = name;
+    nameEl.textContent = name || 'Unnamed';
 
     const sub = document.createElement('div');
     sub.className   = 'sel-sub';
-    sub.textContent = s.route ? `Hwy ${s.route}` : '';
+    sub.textContent = nearby;
 
     row.appendChild(cb);
     row.appendChild(nameEl);
     row.appendChild(sub);
 
-    // Clicking the row (not the checkbox itself) also toggles
     row.addEventListener('click', e => {
       if (e.target === cb) return;
       cb.checked = !cb.checked;

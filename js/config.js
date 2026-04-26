@@ -3,12 +3,18 @@
 //  Edit values here to change default behaviour across the app.
 // ═══════════════════════════════════════════════════════════════
 
-// Default number of columns shown on first load (1–5)
-const DEFAULT_SIZE = 3;
+// Default stream size on first load (1 = smallest, 5 = largest).
+// Columns are derived as COLUMNS_RANGE - DEFAULT_STREAM_SIZE.
+const DEFAULT_STREAM_SIZE = 3;
 
-// Min / max slider bounds
-const SIZE_MIN = 1;
-const SIZE_MAX = 5;
+// Min / max column bounds
+const COLUMNS_MIN = 1;
+const COLUMNS_MAX = 5;
+
+// Range length — size and columns always sum to COLUMNS_RANGE + 1
+// so they mirror each other within the same range.
+// e.g. with MAX=5, MIN=1: size=1 → columns=5, size=5 → columns=1
+const COLUMNS_RANGE = COLUMNS_MAX + COLUMNS_MIN; // = 6
 
 // Milliseconds to wait before re-starting a stream after refresh
 const REFRESH_DELAY_MS = 80;

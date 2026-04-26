@@ -19,6 +19,7 @@
   --muted:      #6b6b8a;
   --border:     #222236;
   --header-bg:  rgba(9,9,16,0.96);
+  --scanline:   rgba(255,255,255,0.013);
   --error-bg:   rgba(9,9,16,0.93);
   --input-bg:   #0d0d18;
   --scrollbar:  #2a2a40;
@@ -53,6 +54,8 @@ body {
   overflow-x: hidden;
   transition: background 0.25s, color 0.25s;
 }
+
+
 
 /* ── Main content area ────────────────────────────────────────── */
 main {

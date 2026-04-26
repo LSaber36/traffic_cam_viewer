@@ -1,72 +1,105 @@
 // ═══════════════════════════════════════════════════════════════
 //  js/navbar.js — Navigation bar interactivity
 //
-//  Covers: stream size control (slider + input + ± buttons),
+//  Covers: stream size control (slider + ± buttons),
 //          light/dark theme toggle, global play/pause all,
 //          global refresh all.
+//
+//  Internally tracks COLUMNS (higher = smaller streams).
+//  The − button increases size (fewer columns).
+//  The + button decreases size (more columns).
+//  The text input is hidden from the user.
 //
 //  Depends on: config.js, cards.js (activePlayers)
 // ═══════════════════════════════════════════════════════════════
 
 // ── DOM refs ─────────────────────────────────────────────────────
-const _grid       = document.getElementById('grid');
-const _sizeSlider = document.getElementById('size-slider');
-const _sizeInput  = document.getElementById('size-input');
-const _btnMinus   = document.getElementById('btn-size-minus');
-const _btnPlus    = document.getElementById('btn-size-plus');
-const _themeTrack = document.getElementById('theme-track');
-const _themeLabel = document.getElementById('theme-label');
-const _btnPlayAll  = document.getElementById('btn-play-all');
-const _playAllIcon = document.getElementById('play-all-icon');
-const _playAllLbl  = document.getElementById('play-all-label');
+const _grid          = document.getElementById('grid');
+const _colSlider     = document.getElementById('size-slider');
+const _colInput      = document.getElementById('size-input');     // hidden internal input
+const _sizeDisplay   = document.getElementById('size-display');   // visible user-facing input
+const _btnDecrease   = document.getElementById('btn-size-minus');
+const _btnIncrease   = document.getElementById('btn-size-plus');
+const _themeTrack    = document.getElementById('theme-track');
+const _themeLabel    = document.getElementById('theme-label');
+const _btnPlayAll    = document.getElementById('btn-play-all');
+const _playAllIcon   = document.getElementById('play-all-icon');
+const _playAllLbl    = document.getElementById('play-all-label');
 
 // ── Module state ─────────────────────────────────────────────────
 let _globalPlaying = false;
 let _lightMode     = false;
 
 // ═══════════════════════════════════════════════════════════════
-//  Stream Size control  (slider ↔ text input ↔ ± buttons)
+//  Stream size control  (slider ↔ ± buttons, input hidden)
+//
+//  Columns and size are inversely proportional:
+//    − button → fewer columns → streams appear larger
+//    + button → more columns  → streams appear smaller
 // ═══════════════════════════════════════════════════════════════
 
-/**
- * Apply n columns to the grid, clamping to [SIZE_MIN, SIZE_MAX].
- * Keeps slider, input and ± disabled states in sync.
- * @param {number} n
- */
-function applySize(n) {
-  n = Math.max(SIZE_MIN, Math.min(SIZE_MAX, Math.round(n)));
-  _sizeSlider.value = n;
-  _sizeInput.value  = n;
-  _btnMinus.disabled = (n <= SIZE_MIN);
-  _btnPlus.disabled  = (n >= SIZE_MAX);
+// ═══════════════════════════════════════════════════════════════
+//  Stream size control  (slider + ± buttons show streamSize;
+//                        grid uses columns, which mirrors it)
+//
+//  streamSize = COLUMNS_RANGE - columns  (mirrors columns)
+//  columns    = COLUMNS_RANGE - streamSize
+//
+//  Slider and buttons operate on streamSize.
+//  The grid always uses the derived columns value.
+// ═══════════════════════════════════════════════════════════════
 
-  // Compute a sensible minimum card width so cards never overflow
-  const minPx = Math.max(100, Math.floor((window.innerWidth - 40) / n) - 14);
-  _grid.style.gridTemplateColumns = `repeat(${n}, minmax(${minPx}px, 1fr))`;
+function applySize(streamSize) {
+  streamSize = Math.max(COLUMNS_MIN, Math.min(COLUMNS_MAX, Math.round(streamSize)));
+  const columns = COLUMNS_RANGE - streamSize;
+
+  // Sync all controls to streamSize
+  _colSlider.value    = streamSize;
+  _colInput.value     = streamSize;
+  _sizeDisplay.value  = streamSize;
+
+  _btnDecrease.disabled = (streamSize <= COLUMNS_MIN);
+  _btnIncrease.disabled = (streamSize >= COLUMNS_MAX);
+
+  if (columns === 1) {
+    // At max size (1 column), fit the entire card (video + footer) within
+    // the available vertical space so it doesn't bleed off the bottom.
+    const headerH  = document.querySelector('header').offsetHeight;
+    const availH   = window.innerHeight - headerH - 40; // subtract header + main padding
+
+    // Card footer is ~50px. Video portion is the remainder at 16:9 aspect.
+    const footerH  = 50;
+    const videoH   = availH - footerH;
+    const cardW    = Math.floor(videoH * (16 / 9));
+
+    _grid.style.gridTemplateColumns = `minmax(0, ${cardW}px)`;
+    _grid.style.justifyContent = 'center';
+  } else {
+    const minPx = Math.max(100, Math.floor((window.innerWidth - 40) / columns) - 14);
+    _grid.style.gridTemplateColumns = `repeat(${columns}, minmax(${minPx}px, 1fr))`;
+    _grid.style.justifyContent = '';
+  }
 }
 
-// Wire up controls
-_sizeSlider.addEventListener('input', () => applySize(+_sizeSlider.value));
+_colSlider.addEventListener('input', () => applySize(+_colSlider.value));
+_btnDecrease.addEventListener('click', () => applySize(+_colSlider.value - 1));
+_btnIncrease.addEventListener('click', () => applySize(+_colSlider.value + 1));
+window.addEventListener('resize', () => applySize(+_colSlider.value));
 
-_sizeInput.addEventListener('input', () => {
-  const v = parseInt(_sizeInput.value, 10);
+// User can type a stream size directly into the display input
+_sizeDisplay.addEventListener('input', () => {
+  const v = parseInt(_sizeDisplay.value, 10);
   if (!isNaN(v)) applySize(v);
 });
-_sizeInput.addEventListener('blur', () => {
-  let v = parseInt(_sizeInput.value, 10);
-  if (isNaN(v) || v < SIZE_MIN) v = SIZE_MIN;
-  if (v > SIZE_MAX)             v = SIZE_MAX;
+_sizeDisplay.addEventListener('blur', () => {
+  let v = parseInt(_sizeDisplay.value, 10);
+  if (isNaN(v) || v < COLUMNS_MIN) v = COLUMNS_MIN;
+  if (v > COLUMNS_MAX)             v = COLUMNS_MAX;
   applySize(v);
 });
-_sizeInput.addEventListener('keydown', e => {
-  if (e.key === 'Enter') _sizeInput.blur();
+_sizeDisplay.addEventListener('keydown', e => {
+  if (e.key === 'Enter') _sizeDisplay.blur();
 });
-
-_btnMinus.addEventListener('click', () => applySize(+_sizeSlider.value - 1));
-_btnPlus.addEventListener('click',  () => applySize(+_sizeSlider.value + 1));
-
-// Re-apply on window resize so minPx recalculates
-window.addEventListener('resize', () => applySize(+_sizeSlider.value));
 
 // ═══════════════════════════════════════════════════════════════
 //  Theme toggle

@@ -59,7 +59,7 @@ function renderGrid() {
   updateSelCount();        // from selector.js
 
   // 3. Apply default column size
-  applySize(DEFAULT_SIZE); // from navbar.js
+  applySize(DEFAULT_STREAM_SIZE); // from navbar.js
 
   // 4. Render the initial grid
   renderGrid();
