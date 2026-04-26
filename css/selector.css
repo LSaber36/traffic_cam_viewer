@@ -1,21 +1,21 @@
 /* ═══════════════════════════════════════════════════════════════
    selector.css — Stream selector dropdown / bottom-sheet panel
+   NOTE: .selector-panel lives at <body> level (not inside header)
+   to escape the header's backdrop-filter stacking context.
 ═══════════════════════════════════════════════════════════════ */
-
-.selector-wrap { position: relative; }
 
 .selector-panel {
   display: none;
-  position: absolute;
-  top: calc(100% + 8px); right: 0;
+  position: fixed;
+  /* top and right set dynamically by selector.js */
   width: 290px; max-height: 440px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 10px;
-  box-shadow: 0 16px 48px rgba(0,0,0,0.35);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.45);
   overflow: hidden;
   flex-direction: column;
-  z-index: 400;
+  z-index: 9999;
   animation: dropIn 0.18s ease;
 }
 .selector-panel.open { display: flex; }
@@ -132,6 +132,7 @@
     top: auto; bottom: 0; right: 0; left: 0;
     width: 100%; max-height: 72vh;
     border-radius: 14px 14px 0 0;
+    z-index: 9999;
     animation: slideUp 0.22s ease;
   }
 

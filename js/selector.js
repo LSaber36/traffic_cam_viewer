@@ -9,13 +9,13 @@
 // ═══════════════════════════════════════════════════════════════
 
 // ── DOM refs ─────────────────────────────────────────────────────
-const _btnStreams     = document.getElementById('btn-streams');
-const _selectorPanel  = document.getElementById('selector-panel');
-const _backdrop       = document.getElementById('backdrop');
-const _selList        = document.getElementById('selector-list');
-const _selSearch      = document.getElementById('sel-search');
-const _selCount       = document.getElementById('sel-count');
-const _selAllCb       = document.getElementById('sel-all-cb');    // master checkbox
+const _btnStreams    = document.getElementById('btn-streams');
+const _selectorPanel = document.getElementById('selector-panel');
+const _backdrop      = document.getElementById('backdrop');
+const _selList       = document.getElementById('selector-list');
+const _selSearch     = document.getElementById('sel-search');
+const _selCount      = document.getElementById('sel-count');
+const _selAllCb      = document.getElementById('sel-all-cb');
 
 // ── State shared with render.js ───────────────────────────────────
 // Set of STREAMS indices that are currently enabled (shown on grid)
@@ -25,6 +25,28 @@ const enabledSet = new Set();
 //  Panel open / close
 // ═══════════════════════════════════════════════════════════════
 function openSelector() {
+  // Position the panel so its left edge aligns with the button's left edge
+  const btnRect = _btnStreams.getBoundingClientRect();
+  const panelWidth = 290;
+  const btnMid = btnRect.left + btnRect.width / 2;
+  _selectorPanel.style.top   = (btnRect.bottom + 8) + 'px';
+  _selectorPanel.style.left  = Math.max(8, btnMid - panelWidth / 2) + 'px';
+  _selectorPanel.style.right = 'auto';
+
+  // Cut a hole in the backdrop over the button so it stays clickable
+  _backdrop.style.clipPath = `polygon(
+    0% 0%,
+    100% 0%,
+    100% 100%,
+    0% 100%,
+    0% ${btnRect.top}px,
+    ${btnRect.left}px ${btnRect.top}px,
+    ${btnRect.left}px ${btnRect.bottom}px,
+    ${btnRect.right}px ${btnRect.bottom}px,
+    ${btnRect.right}px ${btnRect.top}px,
+    0% ${btnRect.top}px
+  )`;
+
   _selectorPanel.classList.add('open');
   _backdrop.classList.add('open');
   _btnStreams.classList.add('active');
@@ -36,6 +58,7 @@ function openSelector() {
 function closeSelector() {
   _selectorPanel.classList.remove('open');
   _backdrop.classList.remove('open');
+  _backdrop.style.clipPath = '';
   _btnStreams.classList.remove('active');
 }
 
@@ -44,6 +67,7 @@ _btnStreams.addEventListener('click', e => {
   _selectorPanel.classList.contains('open') ? closeSelector() : openSelector();
 });
 
+// Close when clicking the backdrop (outside the panel)
 _backdrop.addEventListener('click', closeSelector);
 
 // ═══════════════════════════════════════════════════════════════
@@ -59,24 +83,13 @@ function updateSelCount() {
 // ═══════════════════════════════════════════════════════════════
 
 /**
- * Sync the master checkbox visual state from enabledSet:
- *   - all checked   → checked, not indeterminate
- *   - some checked  → indeterminate
- *   - none checked  → unchecked, not indeterminate
+ * Sync the master checkbox:
+ *   - all selected  → checked
+ *   - anything else → unchecked
  */
 function _updateSelectAllState() {
-  const total   = STREAMS.length;
-  const checked = enabledSet.size;
-  if (checked === 0) {
-    _selAllCb.checked       = false;
-    _selAllCb.indeterminate = false;
-  } else if (checked === total) {
-    _selAllCb.checked       = true;
-    _selAllCb.indeterminate = false;
-  } else {
-    _selAllCb.checked       = false;
-    _selAllCb.indeterminate = true;
-  }
+  _selAllCb.indeterminate = false;
+  _selAllCb.checked = (enabledSet.size === STREAMS.length);
 }
 
 // Clicking the master checkbox → select all or deselect all
@@ -86,7 +99,6 @@ _selAllCb.addEventListener('change', () => {
   } else {
     enabledSet.clear();
   }
-  _selAllCb.indeterminate = false;
   renderSelItems(_selSearch.value.toLowerCase());
 });
 

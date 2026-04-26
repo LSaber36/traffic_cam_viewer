@@ -16,7 +16,7 @@ header {
   display: flex; align-items: center;
   gap: 8px; padding: 0 16px;
   height: 54px;
-  flex-wrap: nowrap; overflow: hidden;
+  flex-wrap: nowrap;
 }
 
 /* ── Logo & title ─────────────────────────────────────────────── */
@@ -161,13 +161,17 @@ h1 {
   background: var(--border); flex-shrink: 0;
 }
 
+
+
 /* ── Click-outside backdrop ───────────────────────────────────── */
 .backdrop {
-  display: none; position: fixed; inset: 0; z-index: 350;
+  display: none;
+  position: fixed; inset: 0;
+  z-index: 500;
 }
 .backdrop.open { display: block; }
 
-/* ── Responsive ───────────────────────────────────────────────── */
+
 @media (min-width: 600px) {
   .header-row   { padding: 0 20px; gap: 10px; }
   .theme-label  { display: block; }

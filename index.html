@@ -52,52 +52,20 @@
 
       <div class="hdiv"></div>
 
-      <!-- Stream selector dropdown -->
-      <div class="selector-wrap" id="selector-wrap">
-        <button class="hbtn" id="btn-streams" title="Select streams">
-          <!-- list icon -->
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="2.5"
-               stroke-linecap="round" stroke-linejoin="round">
-            <line x1="8"  y1="6"  x2="21" y2="6"/>
-            <line x1="8"  y1="12" x2="21" y2="12"/>
-            <line x1="8"  y1="18" x2="21" y2="18"/>
-            <line x1="3"  y1="6"  x2="3.01" y2="6"/>
-            <line x1="3"  y1="12" x2="3.01" y2="12"/>
-            <line x1="3"  y1="18" x2="3.01" y2="18"/>
-          </svg>
-          <span class="btn-text">Streams</span>
-        </button>
-
-        <!-- Dropdown panel -->
-        <div class="selector-panel" id="selector-panel">
-
-          <!-- Header row: "Select All" master checkbox -->
-          <div class="selector-header">
-            <div class="sel-all-row" id="sel-all-row">
-              <input type="checkbox" class="sel-all-checkbox" id="sel-all-cb">
-              <span class="sel-all-label">Select All</span>
-            </div>
-          </div>
-
-          <!-- Search -->
-          <div class="selector-search">
-            <input class="sel-search-input" id="sel-search"
-                   type="search" placeholder="Filter by name…"
-                   autocomplete="off">
-          </div>
-
-          <!-- Scrollable stream list -->
-          <div class="selector-list" id="selector-list"></div>
-
-          <!-- Footer: count + Apply -->
-          <div class="selector-footer">
-            <span class="sel-count" id="sel-count">0 selected</span>
-            <button class="sel-apply" id="sel-apply">Apply</button>
-          </div>
-
-        </div><!-- /selector-panel -->
-      </div><!-- /selector-wrap -->
+      <!-- Streams button (panel is at body level, not here) -->
+      <button class="hbtn" id="btn-streams" title="Select streams">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round">
+          <line x1="8"  y1="6"  x2="21" y2="6"/>
+          <line x1="8"  y1="12" x2="21" y2="12"/>
+          <line x1="8"  y1="18" x2="21" y2="18"/>
+          <line x1="3"  y1="6"  x2="3.01" y2="6"/>
+          <line x1="3"  y1="12" x2="3.01" y2="12"/>
+          <line x1="3"  y1="18" x2="3.01" y2="18"/>
+        </svg>
+        <span class="btn-text">Streams</span>
+      </button>
 
       <div class="hdiv"></div>
 
@@ -125,8 +93,43 @@
   </div><!-- /header-row -->
 </header>
 
-<!-- Click-outside backdrop for the selector panel -->
+<!-- ═══════════════════════════════════════════════════════════
+     BACKDROP — blocks page while selector is open.
+     Must come before selector-panel in DOM so panel is on top.
+════════════════════════════════════════════════════════════ -->
 <div class="backdrop" id="backdrop"></div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SELECTOR PANEL — lives at body level so it is NOT trapped
+     inside the header's backdrop-filter stacking context.
+════════════════════════════════════════════════════════════ -->
+<div class="selector-panel" id="selector-panel">
+
+  <!-- Header row: "Select All" master checkbox -->
+  <div class="selector-header">
+    <div class="sel-all-row" id="sel-all-row">
+      <input type="checkbox" class="sel-all-checkbox" id="sel-all-cb">
+      <span class="sel-all-label">Select All</span>
+    </div>
+  </div>
+
+  <!-- Search -->
+  <div class="selector-search">
+    <input class="sel-search-input" id="sel-search"
+           type="search" placeholder="Filter by name…"
+           autocomplete="off">
+  </div>
+
+  <!-- Scrollable stream list -->
+  <div class="selector-list" id="selector-list"></div>
+
+  <!-- Footer: count + Apply -->
+  <div class="selector-footer">
+    <span class="sel-count" id="sel-count">0 selected</span>
+    <button class="sel-apply" id="sel-apply">Apply</button>
+  </div>
+
+</div><!-- /selector-panel -->
 
 <!-- ═══════════════════════════════════════════════════════════
      MISSING FILE POPUP
