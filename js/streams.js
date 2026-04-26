@@ -117,7 +117,7 @@ function _rowToStream(row) {
 
 // ─────────────────────────────────────────────────────────────────
 //  Fetch and cache one district's CSV rows.
-//  Returns the array of raw row objects, or null on failure.
+//  Throws a descriptive error so boot's catch shows the right message.
 // ─────────────────────────────────────────────────────────────────
 async function _fetchDistrictRows(districtId) {
   const id = +districtId;
@@ -161,10 +161,14 @@ function _extractCounties(rows, districtId) {
 //  Filters the cached district rows to the given county,
 //  applies optional longitude filter, sorts, and sets window.STREAMS.
 // ─────────────────────────────────────────────────────────────────
-async function loadCounty(districtId, countyName, lonFilter) {
+// ─────────────────────────────────────────────────────────────────
+//  loadCounty(districtId, countyName, lonFilter, sortFilter)
+//  lonFilter:  { enabled, min, max }
+//  sortFilter: { enabled, column } — column is a stream key e.g. 'nearby'
+// ─────────────────────────────────────────────────────────────────
+async function loadCounty(districtId, countyName, lonFilter, sortFilter) {
   const id = +districtId;
 
-  // Use cache — boot already fetched everything
   let rows = _districtRowCache[id];
   if (!rows) {
     rows = await _fetchDistrictRows(id);
@@ -186,15 +190,21 @@ async function loadCounty(districtId, countyName, lonFilter) {
     );
   }
 
-  const sortKey = CSV_COLUMNS[SORT_BY] || SORT_BY;
+  // Sort — use sortFilter if enabled, otherwise default to 'nearby'
+  const sortKey = (sortFilter && sortFilter.enabled && sortFilter.column)
+    ? sortFilter.column
+    : 'nearby';
+
   streams.sort((a, b) => {
-    const av = a[sortKey], bv = b[sortKey];
-    const result = typeof av === 'number' ? av - bv : String(av).localeCompare(String(bv));
-    return SORT_ASCENDING ? result : -result;
+    const av = a[sortKey] || '';
+    const bv = b[sortKey] || '';
+    return typeof av === 'number'
+      ? av - bv
+      : String(av).localeCompare(String(bv));
   });
 
   window.STREAMS = streams;
-  console.log(`[streams.js] ${streams.length} streams — ${countyName}, District ${id}`);
+  console.log(`[streams.js] ${streams.length} streams — ${countyName}, District ${id}, sorted by ${sortKey}`);
   return streams;
 }
 
@@ -205,53 +215,34 @@ async function loadCounty(districtId, countyName, lonFilter) {
 window.streamsReady = (async function boot() {
   console.log('[streams.js] Fetching all district CSVs in parallel…');
 
-  // Fetch all districts simultaneously
+  // Fetch all districts — throws if any district fetch fails
   const results = await Promise.all(
-    DISTRICT_IDS.map(async id => {
-      const rows = await _fetchDistrictRows(id);
-      if (rows && rows.length > 0 && _extractCounties(rows, id).length <= 1) {
-        console.warn(`[streams.js] D${id} has ≤1 county. First row keys:`, Object.keys(rows[0]));
-        console.warn(`[streams.js] D${id} first row sample:`, rows[0]);
-      }
-      return { id, rows };
-    })
+    DISTRICT_IDS.map(async id => ({ id, rows: await _fetchDistrictRows(id) }))
   );
 
-  // Build CALTRANS_DISTRICTS from live county data
   window.CALTRANS_DISTRICTS = results
     .filter(({ rows }) => rows && rows.length > 0)
     .map(({ id, rows }) => {
       const counties = _extractCounties(rows, id);
       console.log(`[streams.js] D${id}: ${counties.length} counties —`, counties);
-      return {
-        id,
-        counties,
-        label:  counties.join('/'),
-        csvUrl: _csvUrl(id),
-      };
+      return { id, counties, label: counties.join('/'), csvUrl: _csvUrl(id) };
     });
 
   console.log(`[streams.js] Districts ready:`,
     window.CALTRANS_DISTRICTS.map(d => `D${d.id}(${d.counties.length})`).join(', '));
 
-  // Load the default district + county
   const defaultDistrict = window.CALTRANS_DISTRICTS.find(d => d.id === DEFAULT_DISTRICT);
   if (
     defaultDistrict &&
     defaultDistrict.counties.some(c => c.toLowerCase() === DEFAULT_COUNTY.toLowerCase())
   ) {
-    try {
-      await loadCounty(DEFAULT_DISTRICT, DEFAULT_COUNTY, {
-        enabled: DEFAULT_LONGITUDE_ENABLED,
-        min:     DEFAULT_LONGITUDE_MIN,
-        max:     DEFAULT_LONGITUDE_MAX,
-      });
-    } catch (err) {
-      console.error('[streams.js] Failed to load default county:', err);
-      window.STREAMS = undefined;
-    }
+    await loadCounty(DEFAULT_DISTRICT, DEFAULT_COUNTY, {
+      enabled: DEFAULT_LONGITUDE_ENABLED,
+      min:     DEFAULT_LONGITUDE_MIN,
+      max:     DEFAULT_LONGITUDE_MAX,
+    });
   } else {
     console.warn(`[streams.js] Default county "${DEFAULT_COUNTY}" not found in District ${DEFAULT_DISTRICT}.`);
-    window.STREAMS = undefined;
+    window.STREAMS = [];
   }
 })();

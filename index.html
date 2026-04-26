@@ -54,6 +54,21 @@
 
       <div class="hdiv"></div>
 
+      <!-- Map link button -->
+      <a class="hbtn" id="btn-map"
+         href="https://gisdata-caltrans.opendata.arcgis.com/datasets/450df5bed93c4558a7264b7ef64187e6_0/explore?location=37.273970%2C-119.846170%2C6"
+         target="_blank" rel="noopener" title="View Caltrans map">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/>
+          <line x1="8" y1="2" x2="8" y2="18"/>
+          <line x1="16" y1="6" x2="16" y2="22"/>
+        </svg>
+      </a>
+
+      <div class="hdiv"></div>
+
       <!-- Streams button (panel is at body level, not here) -->
       <button class="hbtn" id="btn-streams" title="Select streams">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
@@ -119,6 +134,16 @@
         <option value="">— select district first —</option>
       </select>
     </div>
+    <div class="sel-dropdown-group">
+      <label class="sel-dropdown-label" for="sel-sort-col">Sort By</label>
+      <select class="sel-dropdown" id="sel-sort-col">
+        <option value="nearby">Nearby Place</option>
+        <option value="name">Camera Name</option>
+        <option value="longitude">Longitude</option>
+        <option value="latitude">Latitude</option>
+        <option value="route">Route</option>
+      </select>
+    </div>
 
     <!-- Longitude filter -->
     <div class="sel-lon-row">
@@ -135,16 +160,15 @@
         </div>
       </div>
     </div>
+
   </div>
 
   <!-- Select All + Search -->
   <div class="selector-search">
-    <div class="sel-search-row">
-      <span class="sel-dropdown-label">Traffic Cams</span>
-      <input class="sel-search-input" id="sel-search"
-             type="search" placeholder="Filter by name…"
-             autocomplete="off">
-    </div>
+    <span class="sel-section-label">Traffic Cams</span>
+    <input class="sel-search-input" id="sel-search"
+           type="search" placeholder="Filter by name…"
+           autocomplete="off">
     <div class="sel-all-row" id="sel-all-row">
       <input type="checkbox" class="sel-all-checkbox" id="sel-all-cb">
       <span class="sel-all-label">Select All</span>
@@ -163,20 +187,19 @@
 </div><!-- /selector-panel -->
 
 <!-- ═══════════════════════════════════════════════════════════
-     MISSING FILE POPUP
+     FETCH ERROR POPUP
 ════════════════════════════════════════════════════════════ -->
 <div class="popup-overlay" id="popup-overlay">
   <div class="popup-box">
-    <div class="popup-icon">📂</div>
-    <div class="popup-title">File Not Found</div>
-    <div class="popup-msg">
-      The traffic cam data file could not be loaded.<br>
-      Make sure the following file exists in the same folder as <code>index.html</code>:
+    <div class="popup-icon">⚠️</div>
+    <div class="popup-title">Connection Error</div>
+    <div class="popup-msg" id="popup-message">
+      Could not load camera data from the Caltrans server.
     </div>
-    <div class="popup-code" id="popup-filename">traffic_cams.csv</div>
     <div class="popup-msg">
-      Refresh the page after placing the file.
+      Please check your connection and refresh the page to try again.
     </div>
+    <button class="popup-retry" onclick="location.reload()">Reload Page</button>
   </div>
 </div>
 

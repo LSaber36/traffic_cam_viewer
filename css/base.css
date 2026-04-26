@@ -106,15 +106,16 @@ main {
   font-size: 11px; color: var(--muted); line-height: 1.65;
 }
 
-.popup-code {
+.popup-retry {
   font-family: 'Space Mono', monospace;
-  font-size: 12px; font-weight: var(--font-weight-primary);
-  color: var(--accent);
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 6px 14px;
+  font-size: 11px; font-weight: var(--font-weight-primary);
+  text-transform: uppercase; letter-spacing: 0.06em;
+  padding: 8px 20px; border-radius: 6px;
+  background: var(--accent); border: none; color: #fff;
+  cursor: pointer; transition: background 0.15s;
+  margin-top: 4px;
 }
+.popup-retry:hover { background: var(--accent-h); }
 
 /* ── Responsive base ──────────────────────────────────────────── */
 @media (min-width: 600px) {

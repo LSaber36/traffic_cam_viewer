@@ -149,8 +149,8 @@ h1 {
   transform: translateX(16px); background: #fff; opacity: 1;
 }
 
-/* ── Generic header action buttons ───────────────────────────── */
-.hbtn {
+/* ── Generic header action buttons + map link ─────────────────── */
+.hbtn, a.hbtn {
   font-family: 'Space Mono', monospace;
   font-weight: 600;
   font-size: 9px; text-transform: uppercase; letter-spacing: 0.05em;
@@ -162,9 +162,10 @@ h1 {
   display: flex; align-items: center; gap: 4px;
   flex-shrink: 0;
 }
-.hbtn:hover        { background: var(--btn-hover); border-color: transparent; color: var(--text); }
-.hbtn.active       { background: var(--accent); border-color: var(--accent); color: #fff; }
-.hbtn.active:hover { background: var(--accent-h); }
+a.hbtn { text-decoration: none; }
+.hbtn:hover, a.hbtn:hover { background: var(--btn-hover); border-color: transparent; color: var(--text); }
+.hbtn.active, a.hbtn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.hbtn.active:hover, a.hbtn.active:hover { background: var(--accent-h); }
 
 /* Text labels — shown on wider screens only */
 .btn-text { display: none; }

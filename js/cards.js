@@ -83,7 +83,7 @@ function buildCard(stream, idx) {
         </div>
       </div>
     `;
-    // Mark card so global controls skip it
+
     card._previewOnly = true;
     return card;
   }

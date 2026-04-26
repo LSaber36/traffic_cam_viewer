@@ -21,9 +21,10 @@ const _selCount      = document.getElementById('sel-count');
 const _selAllCb      = document.getElementById('sel-all-cb');
 const _selDistrict   = document.getElementById('sel-district');
 const _selCounty     = document.getElementById('sel-county');
-const _selLonEnabled = document.getElementById('sel-lon-enabled');
-const _selLonMin     = document.getElementById('sel-lon-min');
-const _selLonMax     = document.getElementById('sel-lon-max');
+const _selLonEnabled  = document.getElementById('sel-lon-enabled');
+const _selLonMin      = document.getElementById('sel-lon-min');
+const _selLonMax      = document.getElementById('sel-lon-max');
+const _selSortCol     = document.getElementById('sel-sort-col');
 
 // ── Committed state (what's actually applied to the grid) ─────────
 // This is what survives a cancel. Only updated on Apply.
@@ -241,8 +242,9 @@ async function _fetchPending(districtId, county, opts = {}) {
   _selDistrict.disabled = true;
 
   try {
-    const lonFilter = _getLonFilter();
-    const streams   = await loadCounty(districtId, county, lonFilter);
+    const lonFilter  = _getLonFilter();
+    const sortFilter = _getSortFilter();
+    const streams    = await loadCounty(districtId, county, lonFilter, sortFilter);
 
     _pending.districtId = districtId;
     _pending.county     = county;
@@ -285,12 +287,9 @@ function _updateLonInputState() {
   _selLonMax.classList.toggle('sel-lon-disabled', !enabled);
 }
 
-_selLonEnabled.addEventListener('change', async () => {
+_selLonEnabled.addEventListener('change', () => {
   _updateLonInputState();
-  const county = _selCounty.value;
-  if (county) {
-    await _fetchPending(+_selDistrict.value, county);
-  }
+  _applyFilters();
 });
 
 function _getLonFilter() {
@@ -300,6 +299,51 @@ function _getLonFilter() {
     max:     parseFloat(_selLonMax.value),
   };
 }
+
+function _getSortFilter() {
+  return {
+    enabled: true,
+    column:  _selSortCol.value,
+  };
+}
+
+// Re-filter from cache instantly — no network, no spinner
+async function _applyFilters() {
+  const districtId = +_selDistrict.value;
+  const county     = _selCounty.value;
+  if (!county) return;
+
+  const lonFilter  = _getLonFilter();
+  const sortFilter = _getSortFilter();
+  const streams    = await loadCounty(districtId, county, lonFilter, sortFilter);
+
+  _pending.districtId = districtId;
+  _pending.county     = county;
+  _pending.lonEnabled = lonFilter.enabled;
+  _pending.lonMin     = lonFilter.min;
+  _pending.lonMax     = lonFilter.max;
+  _pending.streams    = Array.isArray(streams) ? streams : [];
+  window.STREAMS      = _pending.streams;
+
+  // Reset enabledSet to match the new filtered list
+  _pending.enabledSet = new Set();
+  _pending.streams.forEach((_, i) => _pending.enabledSet.add(i));
+
+  renderSelItems(_selSearch.value.toLowerCase());
+  _syncSelectAll();
+}
+
+// Longitude inputs — 200ms debounce, from cache
+let _lonDebounce = null;
+function _debouncedApplyFilters() {
+  clearTimeout(_lonDebounce);
+  _lonDebounce = setTimeout(_applyFilters, 150);
+}
+_selLonMin.addEventListener('input', _debouncedApplyFilters);
+_selLonMax.addEventListener('input', _debouncedApplyFilters);
+
+// Sort dropdown — instant, from cache
+_selSortCol.addEventListener('change', _applyFilters);
 
 // ═══════════════════════════════════════════════════════════════
 //  Count + Select All
@@ -413,40 +457,41 @@ function renderSelItems(filter) {
 //  Apply button — commit pending state
 // ═══════════════════════════════════════════════════════════════
 document.getElementById('sel-apply').addEventListener('click', async () => {
-  // If district/county/lon filter changed, re-fetch with current UI values
   const districtId = +_selDistrict.value;
   const county     = _selCounty.value;
   const lonFilter  = _getLonFilter();
+  const sortFilter = _getSortFilter();
 
   const districtChanged = districtId !== _committed.districtId || county !== _committed.county;
   const lonChanged      = lonFilter.enabled  !== _committed.lonEnabled
                        || lonFilter.min      !== _committed.lonMin
                        || lonFilter.max      !== _committed.lonMax;
+  const sortChanged = sortFilter.column !== _committed.sortColumn;
 
-  if ((districtChanged || lonChanged) && _pending.streams === null || lonChanged) {
+  if ((districtChanged || lonChanged || sortChanged) && _pending.streams === null || lonChanged || sortChanged) {
     await _fetchPending(districtId, county);
   }
 
   // Commit
-  _committed.districtId = districtId;
-  _committed.county     = county;
-  _committed.lonEnabled = lonFilter.enabled;
-  _committed.lonMin     = lonFilter.min;
-  _committed.lonMax     = lonFilter.max;
-  _committed.streams    = window.STREAMS;
-  _committed.enabledSet = new Set(_pending.enabledSet);
+  _committed.districtId  = districtId;
+  _committed.county      = county;
+  _committed.lonEnabled  = lonFilter.enabled;
+  _committed.lonMin      = lonFilter.min;
+  _committed.lonMax      = lonFilter.max;
+  _committed.sortColumn  = sortFilter.column;
+  _committed.streams     = window.STREAMS;
+  _committed.enabledSet  = new Set(_pending.enabledSet);
 
-  // Sync the shared enabledSet (used by renderGrid)
   enabledSet.clear();
   _committed.enabledSet.forEach(i => enabledSet.add(i));
 
-  closeSelector(false);  // close without reverting
+  closeSelector(false);
   stopAllPlayers();
   renderGrid();
 });
 
 // ═══════════════════════════════════════════════════════════════
-//  Init — longitude defaults only.
+//  Init — longitude + sort defaults.
 //  _populateDistrictDropdown() is called by render.js after
 //  streamsReady resolves and CALTRANS_DISTRICTS is built.
 // ═══════════════════════════════════════════════════════════════
@@ -454,3 +499,6 @@ _selLonEnabled.checked = DEFAULT_LONGITUDE_ENABLED;
 _selLonMin.value       = DEFAULT_LONGITUDE_MIN;
 _selLonMax.value       = DEFAULT_LONGITUDE_MAX;
 _updateLonInputState();
+
+// Sort always active — default to nearby place
+_selSortCol.value = 'nearby';
