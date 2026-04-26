@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-  <title>Traffic Cam Viewer</title>
+  <title>CA CCTV Viewer</title>
 
   <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
@@ -25,17 +25,19 @@
 
     <!-- Logo + title -->
     <div class="logo-icon">📡</div>
-    <h1>Traffic Cam Viewer</h1>
+    <h1>CA CCTV Viewer</h1>
 
     <!-- Stream Size control -->
     <div class="size-control">
       <span class="size-label">Stream Size</span>
-      <input type="range" class="size-slider" id="size-slider" min="1" max="5" step="1">
-      <input type="number" class="size-input" id="size-input" min="1" max="5" style="display:none">
-      <div class="size-spinbox">
-        <button class="size-spin-btn" id="btn-size-minus" title="Smaller streams">&#8722;</button>
-        <input type="number" class="size-input" id="size-display" min="1" max="5">
-        <button class="size-spin-btn" id="btn-size-plus"  title="Larger streams">&#43;</button>
+      <div class="size-row">
+        <input type="range" class="size-slider" id="size-slider" min="1" max="5" step="1">
+        <input type="number" class="size-input" id="size-input" min="1" max="5" style="display:none">
+        <div class="size-spinbox">
+          <button class="size-spin-btn" id="btn-size-minus" title="Smaller streams">&#8722;</button>
+          <input type="number" class="size-input" id="size-display" min="1" max="5">
+          <button class="size-spin-btn" id="btn-size-plus"  title="Larger streams">&#43;</button>
+        </div>
       </div>
     </div>
 
@@ -137,10 +139,12 @@
 
   <!-- Select All + Search -->
   <div class="selector-search">
-    <span class="sel-dropdown-label" style="padding-bottom:2px">Traffic Cams</span>
-    <input class="sel-search-input" id="sel-search"
-           type="search" placeholder="Filter by name…"
-           autocomplete="off">
+    <div class="sel-search-row">
+      <span class="sel-dropdown-label">Traffic Cams</span>
+      <input class="sel-search-input" id="sel-search"
+             type="search" placeholder="Filter by name…"
+             autocomplete="off">
+    </div>
     <div class="sel-all-row" id="sel-all-row">
       <input type="checkbox" class="sel-all-checkbox" id="sel-all-cb">
       <span class="sel-all-label">Select All</span>

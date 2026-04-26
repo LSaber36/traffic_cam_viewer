@@ -66,15 +66,20 @@ function buildCard(stream, idx) {
 
   // ── Preview-only card (no streaming URL) ──
   if (previewOnly) {
+    card.className = 'card preview-only';
+    card.style.animationDelay = `${Math.min(idx * 0.03, 0.4)}s`;
+
     card.innerHTML = `
       <div class="video-wrap">
         ${previewHtml}
-        <div class="preview-only-badge">Image Only</div>
       </div>
       <div class="card-info">
         <div class="card-name-block">
           <div class="stream-name">${escHtml(name)}</div>
           ${subHtml}
+        </div>
+        <div class="card-btns">
+          <div class="preview-only-badge">Image Only<br>Stream Not Available</div>
         </div>
       </div>
     `;

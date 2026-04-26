@@ -33,25 +33,35 @@ h1 {
   font-size: 12px; font-weight: 800;
   letter-spacing: 0.07em; text-transform: uppercase;
   white-space: nowrap; flex-shrink: 0;
+  transform: scaleY(1.4);
+  transform-origin: center;
+  display: inline-block;
 }
 
 /* ── Stream Size control ──────────────────────────────────────── */
 .size-control {
-  display: flex; align-items: center; gap: 5px;
+  display: flex; flex-direction: column; gap: 0px;
   margin-left: 8px; flex-shrink: 0;
 }
 
 .size-label {
   font-family: 'Space Mono', monospace;
+  font-weight: 600;
   font-size: 9px; text-transform: uppercase;
-  letter-spacing: 0.08em; color: var(--muted);
+  letter-spacing: 0.08em; color: var(--text);
   white-space: nowrap;
+  margin-left: 6%;
+}
+
+/* Row: slider + spinbox, center-aligned vertically */
+.size-row {
+  display: flex; align-items: center; gap: 8px;
 }
 
 .size-slider {
   -webkit-appearance: none; appearance: none;
   width: 70px; height: 3px; border-radius: 2px;
-  background: var(--border); outline: none; cursor: pointer;
+  background: var(--btn-hover); outline: none; cursor: pointer;
 }
 .size-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
@@ -71,36 +81,37 @@ h1 {
 
 .size-spin-btn {
   width: 22px; height: 26px;
-  background: var(--input-bg);
-  border: 1px solid var(--border);
-  color: var(--muted);
+  background: var(--btn-resting);
+  border: 1px solid transparent;
+  color: var(--text);
   font-size: 15px; line-height: 1;
   border-radius: 5px; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  transition: border-color 0.15s, color 0.15s;
+  transition: background 0.15s, color 0.15s;
   flex-shrink: 0; padding: 0;
   font-family: 'Space Mono', monospace;
+  font-weight: 600;
 }
 .size-spin-btn:hover:not(:disabled) {
-  border-color: var(--accent); color: var(--accent);
+  background: var(--btn-hover); color: var(--text);
 }
 .size-spin-btn:disabled { opacity: 0.35; cursor: default; }
 
 .size-input {
   width: 34px; height: 26px;
-  background: var(--input-bg);
-  border: 1px solid var(--border);
+  background: var(--btn-resting);
+  border: 1px solid transparent;
   border-radius: 5px;
   color: var(--text);
   font-family: 'Space Mono', monospace;
-  font-size: 11px; font-weight: 700;
+  font-size: 11px; font-weight: 600;
   text-align: center; outline: none;
-  transition: border-color 0.15s;
+  transition: background 0.15s;
   -moz-appearance: textfield;
 }
 .size-input::-webkit-inner-spin-button,
 .size-input::-webkit-outer-spin-button { -webkit-appearance: none; }
-.size-input:focus { border-color: var(--accent); }
+.size-input:focus { background: var(--btn-hover); }
 
 /* ── Right cluster ────────────────────────────────────────────── */
 .header-right {
@@ -114,14 +125,15 @@ h1 {
 
 .theme-label {
   font-family: 'Space Mono', monospace;
-  font-size: 9px; color: var(--muted);
+  font-weight: 600;
+  font-size: 9px; color: var(--text);
   text-transform: uppercase; letter-spacing: 0.06em;
   display: none;
 }
 
 .toggle-track {
   position: relative; width: 36px; height: 20px;
-  background: var(--border); border-radius: 10px;
+  background: var(--btn-resting); border-radius: 10px;
   cursor: pointer; transition: background 0.2s; flex-shrink: 0;
 }
 .toggle-track.light-on { background: #f0a500; }
@@ -129,26 +141,28 @@ h1 {
 .toggle-thumb {
   position: absolute; top: 3px; left: 3px;
   width: 14px; height: 14px; border-radius: 50%;
-  background: var(--muted);
-  transition: transform 0.2s, background 0.2s;
+  background: var(--text);
+  opacity: 0.6;
+  transition: transform 0.2s, background 0.2s, opacity 0.2s;
 }
 .toggle-track.light-on .toggle-thumb {
-  transform: translateX(16px); background: #fff;
+  transform: translateX(16px); background: #fff; opacity: 1;
 }
 
 /* ── Generic header action buttons ───────────────────────────── */
 .hbtn {
   font-family: 'Space Mono', monospace;
+  font-weight: 600;
   font-size: 9px; text-transform: uppercase; letter-spacing: 0.05em;
   padding: 6px 9px; border-radius: 6px; cursor: pointer;
-  border: 1px solid var(--border);
-  background: transparent; color: var(--muted);
+  border: 1px solid transparent;
+  background: var(--btn-resting); color: var(--text);
   transition: border-color 0.15s, color 0.15s, background 0.15s;
   white-space: nowrap;
   display: flex; align-items: center; gap: 4px;
   flex-shrink: 0;
 }
-.hbtn:hover        { border-color: var(--accent); color: var(--accent); }
+.hbtn:hover        { background: var(--btn-hover); border-color: transparent; color: var(--text); }
 .hbtn.active       { background: var(--accent); border-color: var(--accent); color: #fff; }
 .hbtn.active:hover { background: var(--accent-h); }
 
