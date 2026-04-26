@@ -19,6 +19,12 @@ const COLUMNS_RANGE = COLUMNS_MAX + COLUMNS_MIN; // = 6
 // Milliseconds to wait before re-starting a stream after refresh
 const REFRESH_DELAY_MS = 80;
 
+// Watchdog: how often (ms) to check if a playing stream has stalled.
+// If the video's currentTime hasn't advanced after this interval, the
+// stream is considered stuck and will be automatically refreshed.
+const WATCHDOG_INTERVAL_MS = 8000;   // check every 8 seconds
+const WATCHDOG_STALL_MS    = 8000;   // consider stalled if no progress in 8s
+
 // SVG inner paths for the global play/pause button icon
 const ICON_PLAY  = `<polygon points="5,3 19,12 5,21"/>`;
 const ICON_PAUSE = `<rect x="6" y="4" width="4" height="16"/>

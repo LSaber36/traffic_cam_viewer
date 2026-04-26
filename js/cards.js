@@ -117,8 +117,56 @@ function buildCard(stream, idx) {
   const playBtn      = card.querySelector('.btn-play-card');
   const refreshBtn   = card.querySelector('.btn-refresh-card');
 
-  let hlsInst   = null;
-  let isRunning = false;
+  let hlsInst      = null;
+  let isRunning    = false;
+  let watchdogTimer = null;
+  let lastTime      = null;
+  let lastTimeStamp = null;
+
+  // ── Watchdog ──────────────────────────────────────────────────
+  // Periodically checks whether the video's currentTime is advancing.
+  // If it hasn't moved within WATCHDOG_STALL_MS, the stream is silently
+  // refreshed.
+
+  function startWatchdog() {
+    stopWatchdog();
+    lastTime      = null;
+    lastTimeStamp = null;
+    watchdogTimer = setInterval(() => {
+      // Only check if we're supposed to be playing
+      if (!isRunning || video.paused) return;
+
+      const now = Date.now();
+      const ct  = video.currentTime;
+
+      if (lastTime === null) {
+        lastTime      = ct;
+        lastTimeStamp = now;
+        return;
+      }
+
+      const timeSinceCheck = now - lastTimeStamp;
+      const timeAdvanced   = ct - lastTime;
+
+      if (timeSinceCheck >= WATCHDOG_STALL_MS && timeAdvanced < 0.1) {
+        // Stream appears stalled — auto-refresh silently
+        console.warn(`[watchdog] Stream stalled: "${stream.name}" — refreshing`);
+        refreshStream();
+      } else {
+        lastTime      = ct;
+        lastTimeStamp = now;
+      }
+    }, WATCHDOG_INTERVAL_MS);
+  }
+
+  function stopWatchdog() {
+    if (watchdogTimer !== null) {
+      clearInterval(watchdogTimer);
+      watchdogTimer = null;
+    }
+    lastTime      = null;
+    lastTimeStamp = null;
+  }
 
   // ── startStream ──────────────────────────────────────────────
   function startStream() {
@@ -137,10 +185,12 @@ function buildCard(stream, idx) {
       liveBadge.classList.add('show');
       playBtn.classList.add('play-active');
       playBtn.textContent = '\u23F8';   // ⏸
+      startWatchdog();
     }
 
     function onError() {
       isRunning = false;
+      stopWatchdog();
       spinner.classList.remove('active');
       errorOverlay.classList.add('show');
       liveBadge.classList.remove('show');
@@ -175,8 +225,9 @@ function buildCard(stream, idx) {
 
   // ── pauseStream ──────────────────────────────────────────────
   function pauseStream() {
+    stopWatchdog();
     video.pause();
-    liveBadge.classList.remove('show');  // hide LIVE badge when paused
+    liveBadge.classList.remove('show');
     playBtn.classList.remove('play-active');
     playBtn.textContent = '\u25B6';      // ▶
   }
@@ -184,6 +235,7 @@ function buildCard(stream, idx) {
   // ── stopStream ───────────────────────────────────────────────
   function stopStream() {
     isRunning = false;
+    stopWatchdog();
     if (hlsInst) { hlsInst.destroy(); hlsInst = null; }
     video.pause();
     video.src = '';
