@@ -35,7 +35,7 @@ const REFRESH_DELAY_MS = 80;
 // If the video's currentTime hasn't advanced after this interval, the
 // stream is considered stuck and will be automatically refreshed.
 const WATCHDOG_INTERVAL_MS = 8000;   // check every 8 seconds
-const WATCHDOG_STALL_MS    = 8000;   // consider stalled if no progress in 8s
+const WATCHDOG_STALL_MS    = 8000;   // consider stalled if no progress in 8 seconds
 
 // SVG inner paths for the global play/pause button icon
 const ICON_PLAY  = `<polygon points="5,3 19,12 5,21"/>`;

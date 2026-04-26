@@ -214,21 +214,21 @@
 
 <!--
      Load order:
-       1. hls.js          — HLS playback engine (CDN)
-       2. js/config.js    — constants (DEFAULT_DISTRICT, DEFAULT_COUNTY, etc.)
-       3. js/streams.js   — fetches district chart, builds CALTRANS_DISTRICTS, loads default county
-       4. js/cards.js     — escHtml, escAttr, buildCard, activePlayers
-       5. js/navbar.js    — size control, theme, play/pause/refresh
-       6. js/selector.js  — stream selector panel, enabledSet
-       7. js/render.js    — showMissingFilePopup, renderGrid, boot
+       1. hls.js               — HLS playback engine (CDN)
+       2. js/config.js         — constants
+       3. js/stream_loader.js  — fetches district CSVs, builds CALTRANS_DISTRICTS
+       4. js/stream_card.js    — escHtml, escAttr, buildCard, activePlayers
+       5. js/nav_bar.js        — size control, theme, play/pause/refresh
+       6. js/stream_selector.js — stream selector panel, enabledSet
+       7. js/main.js           — showErrorPopup, renderGrid, boot
 -->
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest/dist/hls.min.js"></script>
 <script src="js/config.js"></script>
-<script src="js/streams.js"></script>
-<script src="js/cards.js"></script>
-<script src="js/navbar.js"></script>
-<script src="js/selector.js"></script>
-<script src="js/render.js"></script>
+<script src="js/stream_loader.js"></script>
+<script src="js/stream_card.js"></script>
+<script src="js/nav_bar.js"></script>
+<script src="js/stream_selector.js"></script>
+<script src="js/main.js"></script>
 
 </body>
 </html>

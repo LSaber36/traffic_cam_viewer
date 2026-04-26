@@ -157,27 +157,20 @@ function _extractCounties(rows, districtId) {
 }
 
 // ─────────────────────────────────────────────────────────────────
-//  loadCounty(districtId, countyName, lonFilter)
-//  Filters the cached district rows to the given county,
-//  applies optional longitude filter, sorts, and sets window.STREAMS.
-// ─────────────────────────────────────────────────────────────────
-// ─────────────────────────────────────────────────────────────────
 //  loadCounty(districtId, countyName, lonFilter, sortFilter)
+//  Reads exclusively from _districtRowCache — populated by
+//  loadDistricts() on startup. Never re-fetches from the network.
 //  lonFilter:  { enabled, min, max }
 //  sortFilter: { enabled, column } — column is a stream key e.g. 'nearby'
 // ─────────────────────────────────────────────────────────────────
 async function loadCounty(districtId, countyName, lonFilter, sortFilter) {
-  const id = +districtId;
-
-  let rows = _districtRowCache[id];
-  if (!rows) {
-    rows = await _fetchDistrictRows(id);
-  }
+  const id   = +districtId;
+  const rows = _districtRowCache[id];
 
   if (!rows) {
-    console.error(`[streams.js] No data for District ${id}`);
+    console.error(`[stream_loader.js] No cached data for District ${id} — loadDistricts() must run first`);
     window.STREAMS = [];
-    throw new Error(`No data for District ${id}`);
+    return [];
   }
 
   let streams = rows
@@ -190,7 +183,7 @@ async function loadCounty(districtId, countyName, lonFilter, sortFilter) {
     );
   }
 
-  // Sort — use sortFilter if enabled, otherwise default to 'nearby'
+  // Sort — use sortFilter column if provided, otherwise default to 'nearby'
   const sortKey = (sortFilter && sortFilter.enabled && sortFilter.column)
     ? sortFilter.column
     : 'nearby';
@@ -204,18 +197,18 @@ async function loadCounty(districtId, countyName, lonFilter, sortFilter) {
   });
 
   window.STREAMS = streams;
-  console.log(`[streams.js] ${streams.length} streams — ${countyName}, District ${id}, sorted by ${sortKey}`);
+  console.log(`[stream_loader.js] ${streams.length} streams — ${countyName}, District ${id}, sorted by ${sortKey}`);
   return streams;
 }
 
 // ─────────────────────────────────────────────────────────────────
-//  Boot — fetch all district CSVs in parallel, build
-//  CALTRANS_DISTRICTS from live county data, then load the default.
+//  loadDistricts — fetch all district CSVs in parallel, populate
+//  _districtRowCache, build CALTRANS_DISTRICTS, load default county.
 // ─────────────────────────────────────────────────────────────────
-window.streamsReady = (async function boot() {
-  console.log('[streams.js] Fetching all district CSVs in parallel…');
+window.streamsReady = (async function loadDistricts() {
+  console.log('[stream_loader.js] Fetching all district CSVs in parallel…');
 
-  // Fetch all districts — throws if any district fetch fails
+  // Fetch all districts into cache
   const results = await Promise.all(
     DISTRICT_IDS.map(async id => ({ id, rows: await _fetchDistrictRows(id) }))
   );
@@ -224,11 +217,11 @@ window.streamsReady = (async function boot() {
     .filter(({ rows }) => rows && rows.length > 0)
     .map(({ id, rows }) => {
       const counties = _extractCounties(rows, id);
-      console.log(`[streams.js] D${id}: ${counties.length} counties —`, counties);
+      console.log(`[stream_loader.js] D${id}: ${counties.length} counties —`, counties);
       return { id, counties, label: counties.join('/'), csvUrl: _csvUrl(id) };
     });
 
-  console.log(`[streams.js] Districts ready:`,
+  console.log(`[stream_loader.js] Districts ready:`,
     window.CALTRANS_DISTRICTS.map(d => `D${d.id}(${d.counties.length})`).join(', '));
 
   const defaultDistrict = window.CALTRANS_DISTRICTS.find(d => d.id === DEFAULT_DISTRICT);
@@ -242,7 +235,7 @@ window.streamsReady = (async function boot() {
       max:     DEFAULT_LONGITUDE_MAX,
     });
   } else {
-    console.warn(`[streams.js] Default county "${DEFAULT_COUNTY}" not found in District ${DEFAULT_DISTRICT}.`);
+    console.warn(`[stream_loader.js] Default county "${DEFAULT_COUNTY}" not found in District ${DEFAULT_DISTRICT}.`);
     window.STREAMS = [];
   }
 })();
