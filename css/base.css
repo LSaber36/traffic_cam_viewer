@@ -9,21 +9,26 @@
   --accent:      #e94560;
   --accent-h:    #c73652;
   --card-aspect: 56.25%;   /* 16:9 */
+  --font-weight-primary:   600;
+  --font-weight-secondary: 600;
 }
 
 [data-theme="dark"] {
-  --bg:         #090910;
-  --surface:    #111120;
-  --surface2:   #1a1a2e;
+  --bg:         #1a1a2e;
+  --surface:    #222238;
+  --surface2:   #2a2a44;
   --text:       #f0f0f8;
-  --muted:      #6b6b8a;
-  --border:     #222236;
-  --header-bg:  rgba(9,9,16,0.96);
+  --text-secondary: #9898b8;
+  --muted:      #7878a0;
+  --border:     #34344e;
+  --header-bg:  rgba(26,26,46,0.96);
   --scanline:   rgba(255,255,255,0.013);
-  --error-bg:   rgba(9,9,16,0.93);
-  --input-bg:   #0d0d18;
-  --scrollbar:  #2a2a40;
-  --popup-shadow: rgba(0,0,0,0.6);
+  --error-bg:   rgba(26,26,46,0.93);
+  --input-bg:   #1e1e34;
+  --scrollbar:  #3c3c58;
+  --popup-shadow: rgba(0,0,0,0.5);
+  --btn-resting: rgba(255,255,255,0.14);
+  --btn-hover:   rgba(255,255,255,0.24);
 }
 
 [data-theme="light"] {
@@ -31,6 +36,7 @@
   --surface:    #ffffff;
   --surface2:   #e4e6f4;
   --text:       #1a1a2e;
+  --text-secondary: #5a5a7a;
   --muted:      #8888aa;
   --border:     #d0d4ea;
   --header-bg:  rgba(238,240,248,0.96);
@@ -39,6 +45,8 @@
   --input-bg:   #f6f8ff;
   --scrollbar:  #c8ccde;
   --popup-shadow: rgba(0,0,0,0.2);
+  --btn-resting: rgba(0,0,0,0.07);
+  --btn-hover:   rgba(0,0,0,0.13);
 }
 
 /* ── Reset ────────────────────────────────────────────────────── */
@@ -98,15 +106,16 @@ main {
   font-size: 11px; color: var(--muted); line-height: 1.65;
 }
 
-.popup-code {
+.popup-retry {
   font-family: 'Space Mono', monospace;
-  font-size: 12px; font-weight: 700;
-  color: var(--accent);
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 6px 14px;
+  font-size: 11px; font-weight: var(--font-weight-primary);
+  text-transform: uppercase; letter-spacing: 0.06em;
+  padding: 8px 20px; border-radius: 6px;
+  background: var(--accent); border: none; color: #fff;
+  cursor: pointer; transition: background 0.15s;
+  margin-top: 4px;
 }
+.popup-retry:hover { background: var(--accent-h); }
 
 /* ── Responsive base ──────────────────────────────────────────── */
 @media (min-width: 600px) {

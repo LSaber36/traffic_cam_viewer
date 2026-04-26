@@ -45,8 +45,9 @@ function buildCard(stream, idx) {
   const preview = stream.preview || '';
   const nearby  = stream.nearby  || '';
   const route   = stream.route   || '';
+  const previewOnly = !url;
 
-  // ── Build card element with inline HTML ──
+  // ── Shared HTML fragments ──
   const previewHtml = preview
     ? `<img class="preview-img" src="${escAttr(preview)}" alt="${escAttr(name)}" loading="lazy">`
     : '';
@@ -63,6 +64,31 @@ function buildCard(stream, idx) {
   card.className = 'card';
   card.style.animationDelay = `${Math.min(idx * 0.03, 0.4)}s`;
 
+  // ── Preview-only card (no streaming URL) ──
+  if (previewOnly) {
+    card.className = 'card preview-only';
+    card.style.animationDelay = `${Math.min(idx * 0.03, 0.4)}s`;
+
+    card.innerHTML = `
+      <div class="video-wrap">
+        ${previewHtml}
+      </div>
+      <div class="card-info">
+        <div class="card-name-block">
+          <div class="stream-name">${escHtml(name)}</div>
+          ${subHtml}
+        </div>
+        <div class="card-btns">
+          <div class="preview-only-badge">Image Only<br>Stream Not Available</div>
+        </div>
+      </div>
+    `;
+
+    card._previewOnly = true;
+    return card;
+  }
+
+  // ── Full streaming card ──
   card.innerHTML = `
     <div class="video-wrap">
       ${previewHtml}

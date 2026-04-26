@@ -123,9 +123,9 @@ _btnPlayAll.addEventListener('click', () => {
     _playAllLbl.textContent = 'Pause All';
 
     document.querySelectorAll('.card').forEach(card => {
+      if (card._previewOnly) return;   // skip preview-only cards
       const state = activePlayers.get(card);
       if (!state) {
-        // Card not yet playing — start it
         card._startStream && card._startStream();
       } else {
         // Already in the map — just resume
@@ -140,8 +140,8 @@ _btnPlayAll.addEventListener('click', () => {
     _playAllIcon.innerHTML = ICON_PLAY;
     _playAllLbl.textContent = 'Play All';
 
-    // Pause each active player (not stop — keep HLS alive)
     activePlayers.forEach(({ video, playBtn }, card) => {
+      if (card._previewOnly) return;
       video.pause();
       card.querySelector('.live-badge').classList.remove('show');
       playBtn.classList.remove('play-active');
@@ -154,13 +154,13 @@ _btnPlayAll.addEventListener('click', () => {
 //  Global Refresh all
 // ═══════════════════════════════════════════════════════════════
 document.getElementById('btn-refresh-all').addEventListener('click', () => {
-  // Refresh restarts all streams, so set state to "playing"
   _globalPlaying = true;
   _btnPlayAll.classList.add('active');
   _playAllIcon.innerHTML = ICON_PAUSE;
   _playAllLbl.textContent = 'Pause All';
 
   document.querySelectorAll('.card').forEach(c => {
+    if (c._previewOnly) return;
     c._refreshStream && c._refreshStream();
   });
 });

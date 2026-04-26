@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-  <title>Traffic Cam Viewer</title>
+  <title>CA CCTV Viewer</title>
 
   <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
@@ -25,17 +25,19 @@
 
     <!-- Logo + title -->
     <div class="logo-icon">📡</div>
-    <h1>Traffic Cam Viewer</h1>
+    <h1>CA CCTV Viewer</h1>
 
     <!-- Stream Size control -->
     <div class="size-control">
       <span class="size-label">Stream Size</span>
-      <input type="range" class="size-slider" id="size-slider" min="1" max="5" step="1">
-      <input type="number" class="size-input" id="size-input" min="1" max="5" style="display:none">
-      <div class="size-spinbox">
-        <button class="size-spin-btn" id="btn-size-minus" title="Smaller streams">&#8722;</button>
-        <input type="number" class="size-input" id="size-display" min="1" max="5">
-        <button class="size-spin-btn" id="btn-size-plus"  title="Larger streams">&#43;</button>
+      <div class="size-row">
+        <input type="range" class="size-slider" id="size-slider" min="1" max="5" step="1">
+        <input type="number" class="size-input" id="size-input" min="1" max="5" style="display:none">
+        <div class="size-spinbox">
+          <button class="size-spin-btn" id="btn-size-minus" title="Smaller streams">&#8722;</button>
+          <input type="number" class="size-input" id="size-display" min="1" max="5">
+          <button class="size-spin-btn" id="btn-size-plus"  title="Larger streams">&#43;</button>
+        </div>
       </div>
     </div>
 
@@ -49,6 +51,21 @@
           <div class="toggle-thumb"></div>
         </div>
       </div>
+
+      <div class="hdiv"></div>
+
+      <!-- Map link button -->
+      <a class="hbtn" id="btn-map"
+         href="https://gisdata-caltrans.opendata.arcgis.com/datasets/450df5bed93c4558a7264b7ef64187e6_0/explore?location=37.273970%2C-119.846170%2C6"
+         target="_blank" rel="noopener" title="View Caltrans map">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/>
+          <line x1="8" y1="2" x2="8" y2="18"/>
+          <line x1="16" y1="6" x2="16" y2="22"/>
+        </svg>
+      </a>
 
       <div class="hdiv"></div>
 
@@ -105,19 +122,57 @@
 ════════════════════════════════════════════════════════════ -->
 <div class="selector-panel" id="selector-panel">
 
-  <!-- Header row: "Select All" master checkbox -->
-  <div class="selector-header">
+  <!-- District + County dropdowns -->
+  <div class="selector-dropdowns">
+    <div class="sel-dropdown-group">
+      <label class="sel-dropdown-label" for="sel-district">District</label>
+      <select class="sel-dropdown" id="sel-district"></select>
+    </div>
+    <div class="sel-dropdown-group">
+      <label class="sel-dropdown-label" for="sel-county">County</label>
+      <select class="sel-dropdown" id="sel-county">
+        <option value="">— select district first —</option>
+      </select>
+    </div>
+    <div class="sel-dropdown-group">
+      <label class="sel-dropdown-label" for="sel-sort-col">Sort By</label>
+      <select class="sel-dropdown" id="sel-sort-col">
+        <option value="nearby">Nearby Place</option>
+        <option value="name">Camera Name</option>
+        <option value="longitude">Longitude</option>
+        <option value="latitude">Latitude</option>
+        <option value="route">Route</option>
+      </select>
+    </div>
+
+    <!-- Longitude filter -->
+    <div class="sel-lon-row">
+      <input type="checkbox" class="sel-lon-checkbox" id="sel-lon-enabled">
+      <label class="sel-dropdown-label" for="sel-lon-enabled">Longitude</label>
+      <div class="sel-lon-inputs">
+        <div class="sel-lon-group">
+          <label class="sel-lon-label" for="sel-lon-min">Min</label>
+          <input type="number" class="sel-lon-input" id="sel-lon-min" step="0.0001">
+        </div>
+        <div class="sel-lon-group">
+          <label class="sel-lon-label" for="sel-lon-max">Max</label>
+          <input type="number" class="sel-lon-input" id="sel-lon-max" step="0.0001">
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Select All + Search -->
+  <div class="selector-search">
+    <span class="sel-section-label">Traffic Cams</span>
+    <input class="sel-search-input" id="sel-search"
+           type="search" placeholder="Filter by name…"
+           autocomplete="off">
     <div class="sel-all-row" id="sel-all-row">
       <input type="checkbox" class="sel-all-checkbox" id="sel-all-cb">
       <span class="sel-all-label">Select All</span>
     </div>
-  </div>
-
-  <!-- Search -->
-  <div class="selector-search">
-    <input class="sel-search-input" id="sel-search"
-           type="search" placeholder="Filter by name…"
-           autocomplete="off">
   </div>
 
   <!-- Scrollable stream list -->
@@ -132,20 +187,19 @@
 </div><!-- /selector-panel -->
 
 <!-- ═══════════════════════════════════════════════════════════
-     MISSING FILE POPUP
+     FETCH ERROR POPUP
 ════════════════════════════════════════════════════════════ -->
 <div class="popup-overlay" id="popup-overlay">
   <div class="popup-box">
-    <div class="popup-icon">📂</div>
-    <div class="popup-title">File Not Found</div>
-    <div class="popup-msg">
-      The traffic cam data file could not be loaded.<br>
-      Make sure the following file exists in the same folder as <code>index.html</code>:
+    <div class="popup-icon">⚠️</div>
+    <div class="popup-title">Connection Error</div>
+    <div class="popup-msg" id="popup-message">
+      Could not load camera data from the Caltrans server.
     </div>
-    <div class="popup-code" id="popup-filename">traffic_cams.csv</div>
     <div class="popup-msg">
-      Refresh the page after placing the file.
+      Please check your connection and refresh the page to try again.
     </div>
+    <button class="popup-retry" onclick="location.reload()">Reload Page</button>
   </div>
 </div>
 
@@ -160,21 +214,21 @@
 
 <!--
      Load order:
-       1. hls.js          — HLS playback engine (CDN)
-       2. js/streams.js   — fetches CSV, filters, builds STREAMS
-       3. js/config.js    — constants
-       4. js/cards.js     — escHtml, escAttr, buildCard, activePlayers
-       5. js/navbar.js    — size control, theme, play/pause/refresh
-       6. js/selector.js  — stream selector panel, enabledSet
-       7. js/render.js    — showMissingFilePopup, renderGrid, boot
+       1. hls.js               — HLS playback engine (CDN)
+       2. js/config.js         — constants
+       3. js/stream_loader.js  — fetches district CSVs, builds CALTRANS_DISTRICTS
+       4. js/stream_card.js    — escHtml, escAttr, buildCard, activePlayers
+       5. js/nav_bar.js        — size control, theme, play/pause/refresh
+       6. js/stream_selector.js — stream selector panel, enabledSet
+       7. js/main.js           — showErrorPopup, renderGrid, boot
 -->
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest/dist/hls.min.js"></script>
-<script src="js/streams.js"></script>
 <script src="js/config.js"></script>
-<script src="js/cards.js"></script>
-<script src="js/navbar.js"></script>
-<script src="js/selector.js"></script>
-<script src="js/render.js"></script>
+<script src="js/stream_loader.js"></script>
+<script src="js/stream_card.js"></script>
+<script src="js/nav_bar.js"></script>
+<script src="js/stream_selector.js"></script>
+<script src="js/main.js"></script>
 
 </body>
 </html>
