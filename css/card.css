@@ -154,7 +154,7 @@
 
 /* ── Card footer ──────────────────────────────────────────────── */
 .card-info {
-  padding: clamp(5px, 1.5cqi, 8px) clamp(6px, 2cqi, 10px);
+  padding: clamp(5px, 1.5cqi, 8px) clamp(2px, 2cqi, 10px);
   align-items: center;
   justify-content: space-between; gap: clamp(3px, 1cqi, 6px);
   border-top: 1px solid var(--border);
@@ -163,7 +163,7 @@
 }
 
 .stream-name {
-  padding: clamp(5px, 1.5cqi, 8px) clamp(6px, 2cqi, 10px) 0;
+  padding: clamp(5px, 1.5cqi, 8px) clamp(4px, 1cqi, 10px) 0;
   font-size: clamp(7px, 4cqi, 14px);
   font-weight: var(--font-weight-primary); color: var(--text);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -171,7 +171,7 @@
 }
 
 .card-lower-section {
-  padding: clamp(5px, 1.5cqi, 8px) clamp(6px, 2cqi, 10px);
+  padding: clamp(5px, 1.5cqi, 8px) clamp(4px, 1cqi, 10px);
   display: flex; align-items: center;
   justify-content: space-between; gap: clamp(3px, 1cqi, 6px);
   transition: border-color 0.25s;
@@ -191,7 +191,7 @@
 .stream-sub-bullet,
 .stream-sub-nearby {
   font-family: 'Space Mono', monospace;
-  font-size: clamp(7px, 2.8cqi, 11px);
+  font-size: clamp(8px, 3.8cqi, 15px);
   font-weight: var(--font-weight-secondary);
   color: var(--text-secondary);
   white-space: nowrap;
@@ -204,13 +204,13 @@
 }
 
 /* ── Card buttons ─────────────────────────────────────────────── */
-.card-btns { display: flex; gap: clamp(2px, 0.8cqi, 4px); flex-shrink: 0; }
+.card-btns { display: flex; gap: clamp(2px, 1.8cqi, 6px); flex-shrink: 0; margin-top: 5px;}
 
 .cbtn {
   font-family: 'Space Mono', monospace;
-  font-size: clamp(7px, 2.5cqi, 9px);
+  font-size: clamp(5px, 4.5cqi, 15px);
   text-transform: uppercase; letter-spacing: 0.04em;
-  padding: clamp(3px, 3cqi, 10px) clamp(4px, 3cqi, 10px);
+  padding: clamp(3px, 3cqi, 6px) clamp(4px, 3cqi, 10px);
   border-radius: 5px;
   border: 1px solid transparent;
   background: var(--btn-resting); color: var(--text);
