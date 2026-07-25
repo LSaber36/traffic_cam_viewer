@@ -15,7 +15,6 @@
 
 // ── DOM refs ─────────────────────────────────────────────────────
 const _grid          = document.getElementById('grid');
-const _colSlider     = document.getElementById('size-slider');
 const _colInput      = document.getElementById('size-input');     // hidden internal input
 const _sizeDisplay   = document.getElementById('size-display');   // visible user-facing input
 const _btnDecrease   = document.getElementById('btn-size-minus');
@@ -53,25 +52,19 @@ function applySize(streamSize) {
   streamSize = Math.max(COLUMNS_MIN, Math.min(COLUMNS_MAX, Math.round(streamSize)));
   const columns = COLUMNS_RANGE - streamSize;
 
-  // Sync all controls to streamSize
-  _colSlider.value    = streamSize;
-  _colInput.value     = streamSize;
-  _sizeDisplay.value  = streamSize;
+  // Sync controls to streamSize
+  _colInput.value    = streamSize;
+  _sizeDisplay.value = streamSize;
 
   _btnDecrease.disabled = (streamSize <= COLUMNS_MIN);
   _btnIncrease.disabled = (streamSize >= COLUMNS_MAX);
 
   if (columns === 1) {
-    // At max size (1 column), fit the entire card (video + footer) within
-    // the available vertical space so it doesn't bleed off the bottom.
     const headerH  = document.querySelector('header').offsetHeight;
-    const availH   = window.innerHeight - headerH - 40; // subtract header + main padding
-
-    // Card footer is ~50px. Video portion is the remainder at 16:9 aspect.
+    const availH   = window.innerHeight - headerH - 40;
     const footerH  = 50;
     const videoH   = availH - footerH;
     const cardW    = Math.floor(videoH * (16 / 9));
-
     _grid.style.gridTemplateColumns = `minmax(0, ${cardW}px)`;
     _grid.style.justifyContent = 'center';
   } else {
@@ -81,10 +74,9 @@ function applySize(streamSize) {
   }
 }
 
-_colSlider.addEventListener('input', () => applySize(+_colSlider.value));
-_btnDecrease.addEventListener('click', () => applySize(+_colSlider.value - 1));
-_btnIncrease.addEventListener('click', () => applySize(+_colSlider.value + 1));
-window.addEventListener('resize', () => applySize(+_colSlider.value));
+_btnDecrease.addEventListener('click', () => applySize(+_sizeDisplay.value - 1));
+_btnIncrease.addEventListener('click', () => applySize(+_sizeDisplay.value + 1));
+window.addEventListener('resize', () => applySize(+_sizeDisplay.value));
 
 // User can type a stream size directly into the display input
 _sizeDisplay.addEventListener('input', () => {
@@ -109,6 +101,8 @@ _themeTrack.addEventListener('click', () => {
   document.documentElement.setAttribute('data-theme', _lightMode ? 'light' : 'dark');
   _themeTrack.classList.toggle('light-on', _lightMode);
   _themeLabel.textContent = _lightMode ? 'Light' : 'Dark';
+  _themeTrack.classList.toggle('theme-dark', !_lightMode);
+  _themeTrack.classList.toggle('theme-light', _lightMode);
 });
 
 // ═══════════════════════════════════════════════════════════════

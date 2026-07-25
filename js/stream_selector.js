@@ -95,13 +95,21 @@ function _revertUIToCommitted() {
 //  Panel open / close
 // ═══════════════════════════════════════════════════════════════
 function openSelector() {
-  // Position under the button
   const btnRect    = _btnStreams.getBoundingClientRect();
-  const panelWidth = 290;
-  const btnMid     = btnRect.left + btnRect.width / 2;
-  _selectorPanel.style.top   = (btnRect.bottom + 8) + 'px';
-  _selectorPanel.style.left  = Math.max(8, btnMid - panelWidth / 2) + 'px';
+  const headerBottom = document.querySelector('header').getBoundingClientRect().bottom;
+  const margin     = 8;
+  const maxWidth   = window.innerWidth - margin * 2;
+  const panelWidth = Math.min(290, maxWidth);
+  const idealLeft  = btnRect.left + btnRect.width / 2 - panelWidth / 2;
+  const clampedLeft = Math.min(
+    Math.max(idealLeft, margin),
+    window.innerWidth - panelWidth - margin
+  );
+
+  _selectorPanel.style.top   = headerBottom + 'px';
+  _selectorPanel.style.left  = clampedLeft + 'px';
   _selectorPanel.style.right = 'auto';
+  _selectorPanel.style.width = panelWidth + 'px';
 
   _backdrop.style.clipPath = `polygon(
     0% 0%, 100% 0%, 100% 100%, 0% 100%,
@@ -134,6 +142,7 @@ function closeSelector(revert) {
   _selectorPanel.classList.remove('open');
   _backdrop.classList.remove('open');
   _backdrop.style.clipPath = '';
+  _selectorPanel.style.width = '';
   _btnStreams.classList.remove('active');
 }
 
