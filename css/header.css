@@ -5,6 +5,7 @@
 
 header {
   position: sticky; top: 0; z-index: 300;
+  width: 100%;
   background: var(--header-bg);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
@@ -14,9 +15,11 @@ header {
 
 .header-row {
   display: flex; align-items: center;
-  gap: 8px; padding: 0 16px;
+  gap: clamp(4px, 1vw, 10px); padding: 0 clamp(10px, 2.5vw, 24px);
   height: 54px;
   flex-wrap: nowrap;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* ── Logo & title ─────────────────────────────────────────────── */
@@ -30,61 +33,44 @@ header {
 }
 
 h1 {
-  font-size: 12px; font-weight: 800;
+  font-size: 11px; font-weight: 800;
   letter-spacing: 0.07em; text-transform: uppercase;
   white-space: nowrap; flex-shrink: 0;
   transform: scaleY(1.4);
   transform-origin: center;
   display: inline-block;
+  line-height: 1.2;
 }
 
-/* ── Stream Size control ──────────────────────────────────────── */
+/* ── Stream Size control (spinbox only, no slider) ────────────── */
 .size-control {
-  display: flex; flex-direction: column; gap: 0px;
-  margin-left: 8px; flex-shrink: 0;
+  display: flex; flex-direction: column; align-items: center; gap: 0;
+  margin-left: clamp(4px, 1vw, 8px);
+  flex-shrink: 0;
+}
+
+.size-label-wrap {
+  display: flex; justify-content: center;
 }
 
 .size-label {
   font-family: 'Space Mono', monospace;
   font-weight: 600;
-  font-size: 9px; text-transform: uppercase;
+  font-size: clamp(7px, 1.2vw, 9px); text-transform: uppercase;
   letter-spacing: 0.08em; color: var(--text);
   white-space: nowrap;
-  margin-left: 6%;
 }
 
-/* Row: slider + spinbox, center-aligned vertically */
-.size-row {
-  display: flex; align-items: center; gap: 8px;
-}
-
-.size-slider {
-  -webkit-appearance: none; appearance: none;
-  width: 70px; height: 3px; border-radius: 2px;
-  background: var(--btn-hover); outline: none; cursor: pointer;
-}
-.size-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 14px; height: 14px; border-radius: 50%;
-  background: var(--accent); cursor: pointer;
-  box-shadow: 0 0 6px rgba(233,69,96,0.5);
-}
-.size-slider::-moz-range-thumb {
-  width: 14px; height: 14px; border: none;
-  border-radius: 50%; background: var(--accent); cursor: pointer;
-}
-
-/* ± / number input spinbox */
 .size-spinbox {
   display: flex; align-items: center; gap: 2px;
 }
 
 .size-spin-btn {
-  width: 22px; height: 26px;
+  width: clamp(18px, 3.5vw, 22px); height: clamp(22px, 4vw, 26px);
   background: var(--btn-resting);
   border: 1px solid transparent;
   color: var(--text);
-  font-size: 15px; line-height: 1;
+  font-size: clamp(12px, 2.5vw, 15px); line-height: 1;
   border-radius: 5px; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   transition: background 0.15s, color 0.15s;
@@ -92,19 +78,17 @@ h1 {
   font-family: 'Space Mono', monospace;
   font-weight: 600;
 }
-.size-spin-btn:hover:not(:disabled) {
-  background: var(--btn-hover); color: var(--text);
-}
+.size-spin-btn:hover:not(:disabled) { background: var(--btn-hover); }
 .size-spin-btn:disabled { opacity: 0.35; cursor: default; }
 
 .size-input {
-  width: 34px; height: 26px;
+  width: clamp(28px, 5vw, 34px); height: clamp(22px, 4vw, 26px);
   background: var(--btn-resting);
   border: 1px solid transparent;
   border-radius: 5px;
   color: var(--text);
   font-family: 'Space Mono', monospace;
-  font-size: 11px; font-weight: 600;
+  font-size: clamp(9px, 1.8vw, 11px); font-weight: 600;
   text-align: center; outline: none;
   transition: background 0.15s;
   -moz-appearance: textfield;
@@ -116,7 +100,7 @@ h1 {
 /* ── Right cluster ────────────────────────────────────────────── */
 .header-right {
   margin-left: auto;
-  display: flex; align-items: center; gap: 5px;
+  display: flex; align-items: center; gap: clamp(3px, 0.8vw, 5px);
   flex-shrink: 0;
 }
 
@@ -126,7 +110,7 @@ h1 {
 .theme-label {
   font-family: 'Space Mono', monospace;
   font-weight: 600;
-  font-size: 9px; color: var(--text);
+  font-size: clamp(7px, 1.2vw, 9px); color: var(--text);
   text-transform: uppercase; letter-spacing: 0.06em;
   display: none;
 }
@@ -135,6 +119,7 @@ h1 {
   position: relative; width: 36px; height: 20px;
   background: var(--btn-resting); border-radius: 10px;
   cursor: pointer; transition: background 0.2s; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
 }
 .toggle-track.light-on { background: #f0a500; }
 
@@ -144,17 +129,28 @@ h1 {
   background: var(--text);
   opacity: 0.6;
   transition: transform 0.2s, background 0.2s, opacity 0.2s;
+  z-index: 1;
 }
 .toggle-track.light-on .toggle-thumb {
   transform: translateX(16px); background: #fff; opacity: 1;
 }
 
+/* Theme icons inside toggle */
+.theme-icon {
+  position: absolute; z-index: 2; pointer-events: none;
+  transition: opacity 0.2s;
+}
+.theme-icon-dark  { left: 4px;  color: #fff; opacity: 0.8; }
+.theme-icon-light { right: 4px; color: #fff; opacity: 0; }
+.toggle-track.light-on .theme-icon-dark  { opacity: 0; }
+.toggle-track.light-on .theme-icon-light { opacity: 0.9; }
+
 /* ── Generic header action buttons + map link ─────────────────── */
 .hbtn, a.hbtn {
   font-family: 'Space Mono', monospace;
   font-weight: 600;
-  font-size: 9px; text-transform: uppercase; letter-spacing: 0.05em;
-  padding: 6px 9px; border-radius: 6px; cursor: pointer;
+  font-size: clamp(7px, 1.2vw, 9px); text-transform: uppercase; letter-spacing: 0.05em;
+  padding: clamp(4px, 0.8vw, 6px) clamp(5px, 1.2vw, 9px); border-radius: 6px; cursor: pointer;
   border: 1px solid transparent;
   background: var(--btn-resting); color: var(--text);
   transition: border-color 0.15s, color 0.15s, background 0.15s;
@@ -167,7 +163,7 @@ a.hbtn { text-decoration: none; }
 .hbtn.active, a.hbtn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 .hbtn.active:hover, a.hbtn.active:hover { background: var(--accent-h); }
 
-/* Text labels — shown on wider screens only */
+/* Text labels — hidden on narrow/portrait screens */
 .btn-text { display: none; }
 
 /* Vertical divider */
@@ -175,8 +171,6 @@ a.hbtn { text-decoration: none; }
   width: 1px; height: 20px;
   background: var(--border); flex-shrink: 0;
 }
-
-
 
 /* ── Click-outside backdrop ───────────────────────────────────── */
 .backdrop {
@@ -186,17 +180,18 @@ a.hbtn { text-decoration: none; }
 }
 .backdrop.open { display: block; }
 
-
-@media (min-width: 600px) {
-  .header-row   { padding: 0 20px; gap: 10px; }
+/* ── Landscape / wider screens: show text labels ─────────────── */
+@media (min-width: 600px) and (orientation: landscape) {
   .theme-label  { display: block; }
   .btn-text     { display: inline; }
-  .size-slider  { width: 82px; }
-  h1            { font-size: 13px; }
+}
+@media (min-width: 600px) {
+  .theme-label  { display: block; }
+  .btn-text     { display: inline; }
 }
 
-@media (min-width: 900px) {
-  .header-row  { padding: 0 24px; gap: 12px; }
-  .size-slider { width: 90px; }
-  h1           { font-size: 14px; }
+/* ── Portrait mode: icons only, no text ──────────────────────── */
+@media (orientation: portrait) {
+  .btn-text    { display: none !important; }
+  .theme-label { display: none !important; }
 }

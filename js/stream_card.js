@@ -74,13 +74,15 @@ function buildCard(stream, idx) {
         ${previewHtml}
       </div>
       <div class="card-info">
-        <div class="card-name-block">
-          <div class="stream-name">${escHtml(name)}</div>
-          ${subHtml}
-        </div>
-        <div class="card-btns">
-          <div class="preview-only-badge">Image Only<br>Stream Not Available</div>
-        </div>
+				<div class="stream-name">${escHtml(name)}</div>
+				<div class="card-lower-section">
+					<div class="card-sub-info">
+						${subHtml}
+					</div>
+					<div class="card-btns">
+						<div class="preview-only-badge">Image Only<br>Stream Not Available</div>
+					</div>
+				</div>
       </div>
     `;
 
@@ -114,21 +116,23 @@ function buildCard(stream, idx) {
     </div>
 
     <div class="card-info">
-      <div class="card-name-block">
-        <div class="stream-name">${escHtml(name)}</div>
-        ${subHtml}
-      </div>
-      <div class="card-btns">
-        <button class="cbtn btn-refresh-card" title="Refresh this stream">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="2.5"
-               stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="1 4 1 10 7 10"/>
-            <path d="M3.51 15a9 9 0 1 0 .49-3.5"/>
-          </svg>
-        </button>
-        <button class="cbtn btn-play-card">&#9654;</button>
-      </div>
+			<div class="stream-name">${escHtml(name)}</div>
+			<div class="card-lower-section">
+				<div class="card-sub-info">
+					${subHtml}
+				</div>
+				<div class="card-btns">
+					<button class="cbtn btn-refresh-card" title="Refresh this stream">
+						<svg width="10" height="10" viewBox="0 0 24 24" fill="none"
+								stroke="currentColor" stroke-width="2.5"
+								stroke-linecap="round" stroke-linejoin="round">
+							<polyline points="1 4 1 10 7 10"/>
+							<path d="M3.51 15a9 9 0 1 0 .49-3.5"/>
+						</svg>
+					</button>
+					<button class="cbtn btn-play-card">&#9654;</button>
+				</div>
+			</div>
     </div>
   `;
 
