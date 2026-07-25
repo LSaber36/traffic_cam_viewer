@@ -59,6 +59,7 @@ h1 {
   font-size: clamp(7px, 1.2vw, 9px); text-transform: uppercase;
   letter-spacing: 0.08em; color: var(--text);
   white-space: nowrap;
+  margin-bottom: 2px;
 }
 
 .size-spinbox {

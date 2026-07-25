@@ -123,7 +123,7 @@ function buildCard(stream, idx) {
 				</div>
 				<div class="card-btns">
 					<button class="cbtn btn-refresh-card" title="Refresh this stream">
-						<svg width="10" height="10" viewBox="0 0 24 24" fill="none"
+						<svg width="1.5vw" height="1.5vw" viewBox="0 0 24 24" fill="none"
 								stroke="currentColor" stroke-width="2.5"
 								stroke-linecap="round" stroke-linejoin="round">
 							<polyline points="1 4 1 10 7 10"/>
